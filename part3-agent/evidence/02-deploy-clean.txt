@@ -1,37 +1,43 @@
 Чистый Ubuntu 24.04, запуск ./deploy.sh из распакованного архива на хосте агента. Один агент, без человека.
+SNI считаются только на портах 443, соединения с узлом на 8443 в этот счёт не входят, они в 15-transports.txt.
 
 rc=0
-SNI: api.deepseek.com(1) api.ipify.org(1) github.com(2) release-assets.githubusercontent.com(2) www.microsoft.com(2)
+SNI: api.deepseek.com(1) api.ipify.org(1) github.com(2) release-assets.githubusercontent.com(2) www.microsoft.com(1)
 
-verdict ok: True, changed_this_run: 26
+verdict ok: True, changed_this_run: 28
   server_state: ok 
   ext_root_closed: ok 
   ext_password_closed: ok 
   ext_ports: ok 
   transport_reality: ok exit_ip=<HOST_B>
+  transport_reality_alt: ok exit_ip=<HOST_B>
   transport_hysteria: ok exit_ip=<HOST_B>
 шаги этого запуска:
-  12:29:07 recon     ok=True изменений=0
-  12:29:55 harden    ok=True изменений=8
-  12:30:23 xray      ok=True изменений=9
-  12:30:30 hysteria  ok=True изменений=9
-  12:30:33 clientcfg ok=True изменений=0
-  12:30:45 verify    ok=True изменений=0
-ходов главного агента: 6, время: 135 с
-модели: {"deepseek-flash[1m]": {"вход": 28604, "выход": 4264, "кэш": 92544}, "deepseek-flash": {"вход": 5479, "выход": 833, "кэш": 5248}}
-total_cost_usd по ценам Anthropic: 0.3467
+  13:04:11 recon     ok=True изменений=0
+  13:05:34 harden    ok=True изменений=8
+  13:06:03 xray      ok=True изменений=10
+  13:06:10 hysteria  ok=True изменений=10
+  13:06:13 clientcfg ok=True изменений=0
+  13:06:26 verify    ok=True изменений=0
+ходов главного агента: 4, время: 170 с
+модели: {"deepseek-flash[1m]": {"вход": 29162, "выход": 4477, "кэш": 75520}, "deepseek-flash": {"вход": 5376, "выход": 1127, "кэш": 5120}}
+total_cost_usd по ценам Anthropic: 0.3531
 итог агента:
-Развёртывание завершено, `verdict.sh` вернул `"ok": true`.
+## Итог
 
-**Итог (из verdict.json):**
+Развёртывание узла `<HOST_B>` завершено, `verdict.sh` вернул `"ok": true`.
 
-- **ok:** `true`
-- **Транспорты:**
-  - `transport_reality` — ok, `exit_ip=<HOST_B>`
-  - `transport_hysteria` — ok, `exit_ip=<HOST_B>`
-- **Внешние проверки:** `server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports` — все ok
-- **changed_this_run:** 26 (recon 0, harden 8, xray 9, hysteria 9, clientcfg 0)
-- **Порты:** ничего не снимал — на момент recon TCP/443 и UDP/443 были свободны, чужих процессов на них не было
-- **Нерешённое:** нет; клиентские конфиги сформированы в `output/<HOST_B>/client/` (содержимое не читал — секреты)
+**Результат (`verdict.json`)**
+- `ok`: **true**
+- Все проверки `status: ok`: `server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports`.
+- Транспорты:
+  - `transport_reality` (Xray Reality, TCP/443) — ok, `exit_ip=<HOST_B>`
+  - `transport_reality_alt` (второй Reality, TCP/8443) — ok, `exit_ip=<HOST_B>`
+  - `transport_hysteria` (Hysteria2 + Salamander, UDP/443) — ok, `exit_ip=<HOST_B>`
+- `changed_this_run`: **28** (recon 0, harden 8, xray 10, hysteria 10, clientcfg 0).
+- С портов ничего не снималось — `free-port.sh` не вызывался, конфликтов не было.
+- Нерешённого нет: `fail`-проверок и поля `reason` в выводе отсутствуют.
 
-баланс DeepSeek за прогон снизился на $0.03 (два знака, кабинет округляет)
+Замечание по ресурсам: на сервере 961 МБ RAM — близко к нижнему порогу, при нагрузке стоит следить за памятью.
+
+баланс DeepSeek за этот запуск и два следующих снизился на $0.03 (два знака, кабинет округляет)

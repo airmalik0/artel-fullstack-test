@@ -1,0 +1,30 @@
+./start.sh в tmux, в сессии набрано /deploy-server <host>.
+
+Чистый сервер, код до добавления Salamander и второго Reality:
+verdict ok: True, changed_this_run: 26
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+окон подтверждения за прогон: 0, подагентов в фоне: 0
+/cost в этой сессии:
+  Total cost:            $0.3357 (costs may be inaccurate due to usage of unknown models)
+  deepseek-flash[1m]:  30.0k input, 3.9k output, 78.8k cache read, 0 cache write ($0.2877)
+  deepseek-flash:  5.4k input, 734 output, 5.1k cache read, 0 cache write ($0.0480)
+
+Текущий код, третий запуск на уже развёрнутом узле:
+verdict ok: True, changed_this_run: 0
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_reality_alt: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+окон подтверждения за прогон: 0, подагентов в фоне: 0
+/cost в этой сессии:
+  Total cost:            $0.3348 (costs may be inaccurate due to usage of unknown models)
+  deepseek-flash[1m]:  30.4k input, 3.6k output, 79.7k cache read, 0 cache write ($0.2815)
+  deepseek-flash:  5.5k input, 924 output, 5.2k cache read, 0 cache write ($0.0534)

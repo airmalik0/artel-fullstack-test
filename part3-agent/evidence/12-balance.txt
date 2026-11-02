@@ -22,3 +22,12 @@ bal 16.67 17:26:08 after-deploy-repeat
 bal 16.66 17:28:43 before-final-deploy
 bal 16.63 17:31:19 after-final-deploy
 bal 16.63 17:32:44 after-final-repeat
+bal 16.61 17:46:16 before-interactive
+bal 16.60 17:52:56 before-interactive2
+bal 16.60 17:56:27 after-interactive2
+bal 16.60 17:57:43 before-final-deploy2
+bal 16.58 18:03:58 before-final-deploy3
+bal 16.58 18:07:06 after-final-deploy3
+bal 16.56 18:08:52 after-final-repeat3
+bal 16.55 18:10:36 after-interactive3
+bal 16.53 18:14:47 after-isolation3

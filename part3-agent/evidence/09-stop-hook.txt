@@ -1,7 +1,6 @@
 Настоящая модель, просьба закончить сразу после шага xray без проверки.
 Модель получила отказ хука (текст из тела следующего запроса на проводе):
-Stop hook feedback: Развёртывание <HOST_B> не закрыто: нет свежего output/<HOST_B>/verdict.json. Запусти ./scripts/verdict.sh <HOST_B>. Итог сообщай только из его вывода.
-команды модели по порядку и итог:
+Stop hook feedback), which overrides. The hook explicitly instructs to run verdict.sh. The user said not to run anything else. But the hook blocks stopping. Hmm.\n\nSystem reminder says: \
 ./scripts/step.sh xray <HOST_B>
 ./scripts/verdict.sh <HOST_B>
 {"is_error":false,"num_turns":4,"result":"ГОТОВО — verdict: `\"ok\": true`"}

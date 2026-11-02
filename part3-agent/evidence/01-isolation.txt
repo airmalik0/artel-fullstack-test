@@ -1,5 +1,5 @@
 tools/check-isolation.sh, домены Anthropic заглушены в /etc/hosts:
-потоковых дельт: 131 за 6.6 с
+потоковых дельт: 986 за 10.4 с
 модели: ['deepseek-flash[1m]']
 ответ: XRAY v26.10.31 HYSTERIA v2.13.0
 is_error: False ходов: 3
@@ -8,7 +8,7 @@ SNI всех соединений за прогон:
       1 api.deepseek.com
 
 Тот же прогон без заглушки, ищем попытки соединения:
-потоковых дельт: 698 за 12.3 с
+потоковых дельт: 335 за 7.7 с
 модели: ['deepseek-flash[1m]']
 ответ: XRAY v26.10.31 HYSTERIA v2.13.0
 is_error: False ходов: 3

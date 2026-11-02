@@ -1,0 +1,15 @@
+Клиент на хосте агента, живой узел, текущий код. Внешний IP через локальный SOCKS.
+
+hysteria noobfs obfs: нет ответа
+hysteria with obfs: <HOST_B>
+reality 8443 serverName=c.s-microsoft.com: <HOST_B>
+reality 8443 serverName=wwwqa.microsoft.com: <HOST_B>
+reality 8443 serverName=www.microsoft.com: <HOST_B>
+reality 8443 serverName=privacy.microsoft.com: нет ответа
+после удаления правила 8443: rc=1 {"ok":false,"t":{"transport_reality":"ok","transport_reality_alt":"fail","transport_hysteria":"ok","ext_ports":"fail","server_state":"fail"}}
+{"step":"xray","ok":true,"changed":["ufw: разрешён 8443/tcp"]}
+после шага xray: rc=0 {"ok":true,"changed_this_run":1}
+за этот verdict UDP/443 к узлу: 27 пакетов, из них QUIC Initial: 0
+SNI к узлу: 443:www.microsoft.com(1) 8443:c.s-microsoft.com(1) 
+
+Имя privacy.microsoft.com сайт-прикрытие отдаёт, в serverNames его нет, поэтому отказ. SNI на проводе и QUIC Initial сняты tcpdump за один verdict.
