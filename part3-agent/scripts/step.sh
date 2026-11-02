@@ -62,7 +62,7 @@ case "$step" in
     FIRST="$RESULT"
     python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin)["ok"] else 1)' <<<"$FIRST" || emit "$FIRST"
     # Root закрываем только после того, как новый вход проверен извне.
-    ssh "${SSH_OPTS[@]}" -o ControlPath=none "$DEPLOY_USER@$HOST" 'sudo -n true' \
+    ssh -n "${SSH_OPTS[@]}" "$DEPLOY_USER@$HOST" 'sudo -n true' \
       || failure "вход под $DEPLOY_USER не работает, root не закрыт"
     LOGIN="$DEPLOY_USER"; SUDO="sudo -n"
     collect harden PHASE=lock "PUBKEY=$PUBKEY"

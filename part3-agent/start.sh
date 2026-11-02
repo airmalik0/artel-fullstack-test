@@ -70,12 +70,23 @@ PY
 # лежит в домашнем каталоге, она открывается обратно, секреты внутри неё закрыты
 # в settings.json.
 RUNTIME_SETTINGS="$(python3 - "$REAL_HOME" "$ROOT" "$TOKEN_FILE" <<'PY'
-import json, shlex, sys
+import json, os, shlex, sys
 home, root, token_file = sys.argv[1:4]
-print(json.dumps({
+settings = {
     "apiKeyHelper": "cat " + shlex.quote(token_file),
-    "sandbox": {"filesystem": {"denyRead": [home], "allowRead": [root]}},
-}))
+    # Bash агента не пишет в код папки, иначе он подменил бы скрипт из excludedCommands
+    # и запустил свой код вне песочницы. Корень целиком закрыть нельзя: туда песочница
+    # кладёт свои пустые точки монтирования.
+    "sandbox": {"filesystem": {
+        "denyRead": [home],
+        "allowRead": [root],
+        "denyWrite": [os.path.join(root, p) for p in (
+            ".claude", "scripts", "tools", "evidence", "output", "secrets", ".agent-home", ".env",
+            "start.sh", "deploy.sh", "build-archive.sh", "CLAUDE.md", "README.md")],
+    }},
+}
+settings.update(json.loads(os.environ.get("AGENT_EXTRA_SETTINGS") or "{}"))
+print(json.dumps(settings))
 PY
 )"
 

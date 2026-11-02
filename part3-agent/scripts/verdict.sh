@@ -25,11 +25,11 @@ if "$ROOT/scripts/step.sh" verify "$HOST" >"$T/verify.json" 2>/dev/null; then ma
 fi
 
 # Снаружи: root и пароль закрыты, лишних портов нет.
-if ssh -F /dev/null -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 \
+if ssh -n -F /dev/null -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 \
   -o StrictHostKeyChecking=accept-new -o "UserKnownHostsFile=$OUT/known_hosts" "root@$HOST" true 2>/dev/null; then
   mark ext_root_closed fail "root входит по ключу"
 else mark ext_root_closed ok; fi
-pw="$(ssh -F /dev/null -o BatchMode=yes -o ConnectTimeout=10 -o PubkeyAuthentication=no \
+pw="$(ssh -n -F /dev/null -o BatchMode=yes -o ConnectTimeout=10 -o PubkeyAuthentication=no \
   -o PreferredAuthentications=password -o StrictHostKeyChecking=accept-new \
   -o "UserKnownHostsFile=$OUT/known_hosts" "$DEPLOY_USER@$HOST" true 2>&1 || true)"
 case "$pw" in
@@ -124,7 +124,7 @@ elif ! fetch_bins; then
   mark transport_hysteria fail "клиентский бинарь не получен (нужен Linux)"
 else
   probe reality 10808 "$ROOT/.cache/bin/xray-$XRAY_VERSION" run -c "$OUT/client/xray-client.json"
-  probe hysteria 10809 "$ROOT/.cache/bin/hysteria-$HYSTERIA_VERSION" client -c "$OUT/client/hysteria-client.yaml"
+  probe hysteria 10809 env HYSTERIA_DISABLE_UPDATE_CHECK=1 "$ROOT/.cache/bin/hysteria-$HYSTERIA_VERSION" client -c "$OUT/client/hysteria-client.yaml"
 fi
 
 python3 "$ROOT/scripts/lib/verdict.py" "$CHECKS" "$OUT/journal.jsonl" "$HOST" "$CLIENT_IP" "$OUT/verdict.json"

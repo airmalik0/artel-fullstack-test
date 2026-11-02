@@ -77,6 +77,7 @@ Wants=network-online.target
 [Service]
 User=hysteria
 Group=hysteria
+Environment=HYSTERIA_DISABLE_UPDATE_CHECK=1
 ExecStart=/usr/local/bin/hysteria server -c /etc/hysteria/config.yaml
 Restart=on-failure
 RestartSec=3

@@ -45,9 +45,9 @@ load_target() {
 
 # Определяет, под кем заходить: до укрепления root, после него DEPLOY_USER.
 pick_login() {
-  if ssh "${SSH_OPTS[@]}" "$DEPLOY_USER@$HOST" 'sudo -n true' 2>/dev/null; then
+  if ssh -n "${SSH_OPTS[@]}" "$DEPLOY_USER@$HOST" 'sudo -n true' 2>/dev/null; then
     LOGIN="$DEPLOY_USER"; SUDO="sudo -n"
-  elif ssh "${SSH_OPTS[@]}" "$FIRST_USER@$HOST" 'true' 2>/dev/null; then
+  elif ssh -n "${SSH_OPTS[@]}" "$FIRST_USER@$HOST" 'true' 2>/dev/null; then
     LOGIN="$FIRST_USER"
     if [ "$FIRST_USER" = root ]; then SUDO=""; else SUDO="sudo -n"; fi
   else
