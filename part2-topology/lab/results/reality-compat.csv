@@ -1,0 +1,19 @@
+xray_server,client,rep,result
+v26.6.27,sing-box-1.14.4,1,available:
+v26.6.27,xray-26.10.31,1,available
+v26.6.27,sing-box-1.14.4,2,available:
+v26.6.27,xray-26.10.31,2,available
+v26.6.27,sing-box-1.14.4,3,available:
+v26.6.27,xray-26.10.31,3,available
+v26.9.9,sing-box-1.14.4,1,unavailable: x509: certificate signed by unknown authority
+v26.9.9,xray-26.10.31,1,available
+v26.9.9,sing-box-1.14.4,2,unavailable: x509: certificate signed by unknown authority
+v26.9.9,xray-26.10.31,2,available
+v26.9.9,sing-box-1.14.4,3,unavailable: x509: certificate signed by unknown authority
+v26.9.9,xray-26.10.31,3,available
+v26.10.31,sing-box-1.14.4,1,unavailable: x509: certificate signed by unknown authority
+v26.10.31,xray-26.10.31,1,available
+v26.10.31,sing-box-1.14.4,2,unavailable: x509: certificate signed by unknown authority
+v26.10.31,xray-26.10.31,2,available
+v26.10.31,sing-box-1.14.4,3,unavailable: x509: certificate signed by unknown authority
+v26.10.31,xray-26.10.31,3,available

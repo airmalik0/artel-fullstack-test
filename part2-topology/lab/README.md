@@ -24,7 +24,8 @@ run/proof.py results/proof.csv 5                                 # обязат�
 run/matrix.py --out results/matrix.csv --reps 15 --scenarios off # контроль
 run/matrix.py --out results/matrix.csv --append --reps 7 --scenarios pass
 run/matrix.py --out results/matrix.csv --append --reps 5 --scenarios sni_rst,sni_drop,quic_all,quic_sni,vpn_sig,curtain_tls,curtain_all,fet_gfw,fet_ru,conn_limit,wl_ip
-run/failover.py results/failover.csv 7                           # переключение клиента
+run/failover.py --out results/failover.csv --reps 10             # переключение клиента, около часа
+run/wdtest.py --out results/watchdog.csv --reps 10               # сторож объёма, около полутора часов
 ./lab.sh ssh tspu 'sudo /opt/lab/ctl.py set off; sudo /opt/tspu-venv/bin/python3 /opt/lab/probe.py 5' > results/probe.csv
 run/summary.py results/matrix.csv --md
 ./lab.sh down
@@ -57,6 +58,18 @@ run/summary.py results/matrix.csv --md
 В `fet_ru` туннели несут HTTPS, а не HTTP: по [#363] обычный HTTP внутри туннеля правило не задевает. Клиент делает три запроса с длинной Cookie в одном соединении, чтобы дать три пакета от 411 байт. Это моя подгонка под описание, настоящий браузер шлёт другой рисунок.
 
 Каждый повтор начинается со сброса conntrack и состояния модели, поэтому residual-блокировка не переходит из повтора в повтор. В настоящей сети она переходит, и повторные попытки клиента её продлевают.
+
+## Переключение клиента
+
+Клиент sing-box в ВМ `client`, вход SOCKS вместо TUN: путь 1 Reality на `.11` через локальный Xray (sing-box 1.14.4 сам не проходит рукопожатие с Xray 26.10.31, `results/reality-compat.csv`, `run/reality-compat.sh`), путь 2 Hysteria2 с Salamander на `.11`, путь 3 Hysteria2 с Salamander на `.18`. В режиме `selector` со сторожем добавлен путь 4: Reality на `.211` с SNI из белого списка, настоящего входа в РФ на стенде нет. `failover.py` на время замера заменяет чистый Hysteria2 на `.11` на вариант с Salamander (`provision/fo-server.sh`) и по окончании возвращает обратно.
+
+Запросы идут непрерывно: новый запрос каждые 0,25 с в своём соединении, таймаут 4 с (`run/fo-probe.py`). Путь каждого запроса берётся из журнала sing-box по локальному порту. Строка `valid=0`, если перед отказом Clash API показал не Reality, если хотя бы один запрос до отказа прошёл мимо Reality или если отказ не задел запросы. Такие строки остаются в CSV и повторяются. Момент отказа случайный, в пределах двух интервалов проверки. Отказ подаётся одной командой по ssh, её длительность в поле `fault_cmd_s`, время считается от отправки команды.
+
+Отказы: `model_sni` (сценарий `sni_drop`, SNI Reality в блоклисте), `model_curtain` (`curtain_tls`), `model_curtain_all` (`curtain_all`), `service_stop` (Xray снят, порт закрыт), `ip_ban` (дроп всего к `.11` на tspu, без ответа).
+
+Поля `results/failover.csv`: `first_ok_fallback_s` от начала отказа до конца первого успешного запроса через запасной путь, пусто, если за окно `window_s` переключения не было; `fallback_path` какой путь; `gap_s` разрыв между последним успешным запросом до переключения и этим запросом; `failed_after` сколько запросов не прошло; `load1` загрузка мака, стенд делит его с другими задачами.
+
+Поля `results/watchdog.csv`: `first_switch_s` от начала заморозки до первого переключения сторожем, `trail` цепочка путей, `probe_fail` неудачных проб из `probes`. Строки `clean*` и `rate_*` идут без отказа: любое переключение там ложное.
 
 ## Метрики
 

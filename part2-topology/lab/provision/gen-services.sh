@@ -58,6 +58,8 @@ Y
 }
 hy plain 10.10.2.11 ""
 hy obfs 10.10.2.18 "obfs: {type: salamander, salamander: {password: $OBFS}}"
+# Только на время замера переключения, вместо чистого на том же адресе: provision/fo-server.sh.
+hy obfsa 10.10.2.11 "obfs: {type: salamander, salamander: {password: $OBFS}}"
 
 # WireGuard и AmneziaWG
 WS=$(wg genkey); WSP=$(echo "$WS" | wg pubkey); WC=$(wg genkey); WCP=$(echo "$WC" | wg pubkey)
