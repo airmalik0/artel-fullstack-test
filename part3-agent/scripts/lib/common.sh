@@ -42,6 +42,16 @@ load_target() {
   REALITY_SNI="$(env_get REALITY_SNI www.microsoft.com)"
   [[ "$DEPLOY_USER$FIRST_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo "недопустимый пользователь" >&2; exit 2; }
   valid_host "$REALITY_SNI"
+  REALITY_EXTRA_NAMES="$(env_get REALITY_EXTRA_NAMES c.s-microsoft.com,wwwqa.microsoft.com)"
+  REALITY_ALT_PORT="$(env_get REALITY_ALT_PORT 8443)"
+  [ -n "$REALITY_EXTRA_NAMES" ] || { echo "нужно хотя бы одно имя в REALITY_EXTRA_NAMES" >&2; exit 2; }
+  local name
+  for name in ${REALITY_EXTRA_NAMES//,/ }; do valid_host "$name"; done
+  [[ "$REALITY_ALT_PORT" =~ ^[1-9][0-9]{2,4}$ ]] && [ "$REALITY_ALT_PORT" -le 65535 ] \
+    || { echo "недопустимый REALITY_ALT_PORT" >&2; exit 2; }
+  case "$REALITY_ALT_PORT" in
+    22|80|443|3306|8080) echo "REALITY_ALT_PORT не может быть $REALITY_ALT_PORT" >&2; exit 2 ;;
+  esac
   KEY="$(env_get TARGET_SSH_KEY secrets/target_ed25519)"
   case "$KEY" in /*) ;; *) KEY="$ROOT/$KEY" ;; esac
   [ -f "$KEY" ] || { echo "нет ключа для входа на цель: tools/new-target-key.sh" >&2; exit 2; }

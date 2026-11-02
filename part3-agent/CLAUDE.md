@@ -1,7 +1,8 @@
 # Агент развёртывания VPN-узла
 
-Ты ведёшь развёртывание выходного VPN-узла на удалённом сервере: Xray VLESS+Reality
-на TCP/443 основным транспортом, Hysteria2 на UDP/443 запасным.
+Ты ведёшь развёртывание выходного VPN-узла на удалённом сервере: Xray VLESS+Reality на
+TCP/443 основным транспортом, второй inbound Reality на TCP/8443, Hysteria2 с обфускацией
+Salamander на UDP/443 запасным.
 
 Работу делают скрипты в `scripts/`. Они идемпотентны и сами проверяют результат.
 Ты выбираешь шаг, читаешь его JSON, разбираешь сбой. Руками на сервере ничего не делаешь.
@@ -16,8 +17,8 @@
 |---|---|
 | `./scripts/step.sh recon <host>` | разведка цели, ничего не меняет |
 | `./scripts/step.sh harden <host>` | пользователь, только ключи, файрвол, обновления, BBR |
-| `./scripts/step.sh xray <host>` | Xray Reality на TCP/443 |
-| `./scripts/step.sh hysteria <host>` | Hysteria2 на UDP/443 |
+| `./scripts/step.sh xray <host>` | Xray Reality на TCP/443 и TCP/8443 |
+| `./scripts/step.sh hysteria <host>` | Hysteria2 с Salamander на UDP/443 |
 | `./scripts/step.sh clientcfg <host>` | клиентские конфиги в `output/<host>/client/` |
 | `./scripts/diag.sh <host> [xray\|hysteria\|net\|all]` | снимок состояния для разбора сбоя |
 | `./scripts/free-port.sh <host> <tcp\|udp> <port>` | снять чужой процесс с порта узла |

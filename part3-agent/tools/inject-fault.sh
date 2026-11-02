@@ -3,6 +3,7 @@
 #   tools/inject-fault.sh <host> stop-xray    xray остановлен и выключен из автозапуска
 #   tools/inject-fault.sh <host> busy-tcp443  xray снят, чужая служба занимает TCP/443
 #   tools/inject-fault.sh <host> drop-udp-rule  из файрвола удалено правило 443/udp
+#   tools/inject-fault.sh <host> drop-alt-rule  из файрвола удалено правило второго Reality
 #   tools/inject-fault.sh <host> clear        убрать чужую службу
 set -euo pipefail
 . "$(dirname "$0")/../scripts/lib/common.sh"
@@ -30,5 +31,6 @@ REMOTE
     ;;
   drop-udp-rule) remote_sh <<<'ufw delete allow 443/udp; ufw status | grep -c "443/udp" || true' ;;
   clear) remote_sh <<<'systemctl stop fake-web 2>/dev/null; echo cleared' ;;
-  *) echo "сбои: stop-xray busy-tcp443 drop-udp-rule clear" >&2; exit 2 ;;
+  drop-alt-rule) remote_sh <<<"ufw delete allow $REALITY_ALT_PORT/tcp; ufw status | grep -c '$REALITY_ALT_PORT/tcp' || true" ;;
+  *) echo "сбои: stop-xray busy-tcp443 drop-udp-rule drop-alt-rule clear" >&2; exit 2 ;;
 esac

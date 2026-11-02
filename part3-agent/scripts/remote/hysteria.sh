@@ -1,4 +1,5 @@
-# Hysteria2 на UDP/443 с самоподписанным сертификатом и привязкой отпечатка у клиента.
+# Hysteria2 с обфускацией Salamander на UDP/443, самоподписанный сертификат и привязка
+# отпечатка у клиента. Чистый QUIC фильтр видит по Initial, с Salamander Initial нет.
 ensure_pkgs openssl ca-certificates
 ensure_group_user hysteria
 
@@ -31,6 +32,10 @@ if [ ! -s "$SECRETS" ]; then
   chmod 640 "$SECRETS"
   changed "пароль Hysteria создан"
 fi
+if ! grep -q '^OBFS_PASSWORD=.' "$SECRETS"; then
+  ( umask 027; echo "OBFS_PASSWORD=$(openssl rand -hex 24)" >>"$SECRETS" )
+  changed "пароль obfs создан"
+fi
 if [ ! -s /etc/hysteria/server.key ]; then
   openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 3650 \
     -keyout /etc/hysteria/server.key -out /etc/hysteria/server.crt \
@@ -46,6 +51,10 @@ fi
 
 ensure_file /etc/hysteria/config.yaml 640 root:hysteria <<CONF && restart=1
 listen: :443
+obfs:
+  type: salamander
+  salamander:
+    password: $OBFS_PASSWORD
 tls:
   cert: /etc/hysteria/server.crt
   key: /etc/hysteria/server.key
@@ -99,5 +108,6 @@ check hysteria_active systemctl is-active --quiet hysteria
 check hysteria_enabled systemctl is-enabled --quiet hysteria
 check udp443_is_hysteria bash -c '[ "$(ss -H -lunp "sport = :443" | grep -c "\"hysteria\"")" -ge 1 ]'
 check ufw_443_udp bash -c 'ufw status | grep -qE "^443/udp[[:space:]]+ALLOW"'
+check hysteria_obfs grep -q 'type: salamander' /etc/hysteria/config.yaml
 fact hysteria_version "$(/usr/local/bin/hysteria version | awk '/^Version:/{print $2}')"
 finish

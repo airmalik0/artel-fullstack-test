@@ -15,6 +15,7 @@ LOG="$OUT/logs/$step.log"
 
 COMMON_ENV=(
   "DEPLOY_USER=$DEPLOY_USER" "REALITY_SNI=$REALITY_SNI"
+  "REALITY_EXTRA_NAMES=$REALITY_EXTRA_NAMES" "REALITY_ALT_PORT=$REALITY_ALT_PORT"
   "XRAY_VERSION=$XRAY_VERSION" "XRAY_SHA256_AMD64=$XRAY_SHA256_AMD64" "XRAY_SHA256_ARM64=$XRAY_SHA256_ARM64"
   "HYSTERIA_VERSION=$HYSTERIA_VERSION" "HYSTERIA_SHA256_AMD64=$HYSTERIA_SHA256_AMD64" "HYSTERIA_SHA256_ARM64=$HYSTERIA_SHA256_ARM64"
 )
@@ -77,7 +78,7 @@ case "$step" in
     collect clientcfg
     if [ -n "$SECRET" ]; then
       printf '%s' "$SECRET" | base64 -d \
-        | python3 -I "$ROOT/scripts/lib/render_client.py" "$OUT/client" "$HOST" "$REALITY_SNI"
+        | python3 -I "$ROOT/scripts/lib/render_client.py" "$OUT/client" "$HOST" "$REALITY_SNI" "$REALITY_EXTRA_NAMES" "$REALITY_ALT_PORT"
     fi
     SECRET=""
     emit "$RESULT"

@@ -37,16 +37,16 @@ case "$pw" in
   *"Permission denied (publickey)"*) mark ext_password_closed ok ;;
   *) mark ext_password_closed fail "$(printf '%s' "$pw" | head -c 120)" ;;
 esac
-python3 -I - "$HOST" "$T/ports" <<'PY'
+python3 -I - "$HOST" "$T/ports" "$REALITY_ALT_PORT" <<'PY'
 import socket, sys
-host, path = sys.argv[1:3]
+host, path, alt = sys.argv[1:4]
 with open(path, "w") as fh:
-    for port in (22, 443, 80, 8080, 3306):
+    for port in (22, 443, int(alt), 80, 8080, 3306):
         s = socket.socket(); s.settimeout(4)
         fh.write(f"{port} {'open' if s.connect_ex((host, port)) == 0 else 'closed'}\n")
         s.close()
 PY
-if grep -q '^22 open' "$T/ports" && grep -q '^443 open' "$T/ports" \
+if grep -q '^22 open' "$T/ports" && grep -q '^443 open' "$T/ports" && grep -q "^$REALITY_ALT_PORT open" "$T/ports" \
   && ! grep -qE '^(80|8080|3306) open' "$T/ports"; then mark ext_ports ok
 else mark ext_ports fail "$(paste -sd' ' "$T/ports")"; fi
 
@@ -127,13 +127,12 @@ probe() {
 }
 
 if [ ! -s "$OUT/client/xray-client.json" ]; then
-  mark transport_reality fail "нет клиентского конфига: шаг clientcfg"
-  mark transport_hysteria fail "нет клиентского конфига: шаг clientcfg"
+  for name in reality reality_alt hysteria; do mark "transport_$name" fail "нет клиентского конфига: шаг clientcfg"; done
 elif ! fetch_bins; then
-  mark transport_reality fail "клиентский бинарь не получен (нужен Linux)"
-  mark transport_hysteria fail "клиентский бинарь не получен (нужен Linux)"
+  for name in reality reality_alt hysteria; do mark "transport_$name" fail "клиентский бинарь не получен (нужен Linux)"; done
 else
   probe reality 10808 "$T/xray" run -c "$OUT/client/xray-client.json"
+  probe reality_alt 10810 "$T/xray" run -c "$OUT/client/xray-client.json"
   probe hysteria 10809 env HYSTERIA_DISABLE_UPDATE_CHECK=1 "$T/hysteria" client -c "$OUT/client/hysteria-client.yaml"
 fi
 

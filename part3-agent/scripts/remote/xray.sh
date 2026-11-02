@@ -1,12 +1,14 @@
-# Xray VLESS + Reality на TCP/443.
+# Xray VLESS + Reality: основной inbound на TCP/443, второй на TCP/$REALITY_ALT_PORT.
 ensure_pkgs unzip openssl ca-certificates
 ensure_group_user xray
 
-holder="$(port_holder tcp 443)"
-if [ -n "$holder" ] && [ "$holder" != xray ]; then
-  fact port_holder "$holder"
-  die "port_busy tcp/443: $holder"
-fi
+for port in 443 "$REALITY_ALT_PORT"; do
+  holder="$(port_holder tcp "$port")"
+  if [ -n "$holder" ] && [ "$holder" != xray ]; then
+    fact port_holder "$holder"
+    die "port_busy tcp/$port: $holder"
+  fi
+done
 
 arch="$(arch_suffix)"
 if [ "$(/usr/local/bin/xray version 2>/dev/null | awk 'NR==1{print "v"$2}')" != "$XRAY_VERSION" ]; then
@@ -47,19 +49,27 @@ fi
 . "$SECRETS"
 
 restart="${restart:-0}"
-python3 -I - "$PRIVATE_KEY" "$UUID" "$SHORT_ID" "$REALITY_SNI" <<'PY' | ensure_file /etc/xray/config.json 640 root:xray && restart=1
+python3 -I - "$PRIVATE_KEY" "$UUID" "$SHORT_ID" "$REALITY_SNI" "$REALITY_EXTRA_NAMES" "$REALITY_ALT_PORT" <<'PY' | ensure_file /etc/xray/config.json 640 root:xray && restart=1
 import json, sys
-key, uuid, sid, sni = sys.argv[1:5]
-print(json.dumps({
-    "log": {"loglevel": "warning"},
-    "inbounds": [{
-        "listen": "0.0.0.0", "port": 443, "protocol": "vless",
+key, uuid, sid, sni, extra, alt_port = sys.argv[1:7]
+# Несколько имён сразу: SNI меняется в конфиге клиента, без переустановки узла.
+names = [sni] + [n for n in extra.split(",") if n]
+
+
+def inbound(tag, port):
+    return {
+        "tag": tag, "listen": "0.0.0.0", "port": port, "protocol": "vless",
         "settings": {"clients": [{"id": uuid, "flow": "xtls-rprx-vision"}], "decryption": "none"},
         "streamSettings": {"network": "tcp", "security": "reality", "realitySettings": {
             "show": False, "target": f"{sni}:443", "xver": 0,
-            "serverNames": [sni], "privateKey": key, "shortIds": [sid]}},
+            "serverNames": names, "privateKey": key, "shortIds": [sid]}},
         "sniffing": {"enabled": True, "destOverride": ["http", "tls", "quic"], "routeOnly": True},
-    }],
+    }
+
+
+print(json.dumps({
+    "log": {"loglevel": "warning"},
+    "inbounds": [inbound("reality", 443), inbound("reality-alt", int(alt_port))],
     "outbounds": [{"protocol": "freedom", "tag": "direct"}, {"protocol": "blackhole", "tag": "block"}],
     # Узел не должен быть мостом во внутреннюю сеть хостинга.
     "routing": {"rules": [{"type": "field", "outboundTag": "block", "ip": [
@@ -96,12 +106,17 @@ su -s /bin/sh xray -c '/usr/local/bin/xray run -test -c /etc/xray/config.json' >
   || die "xray отверг конфиг"
 ensure_service xray "$restart"
 ensure_ufw_allow 443/tcp
+ensure_ufw_allow "$REALITY_ALT_PORT/tcp"
 
 check xray_active systemctl is-active --quiet xray
 check xray_enabled systemctl is-enabled --quiet xray
 check tcp443_is_xray bash -c '[ "$(ss -H -ltnp "sport = :443" | grep -c "\"xray\"")" -ge 1 ]'
+check tcp_alt_is_xray bash -c "[ \"\$(ss -H -ltnp 'sport = :$REALITY_ALT_PORT' | grep -c '\"xray\"')\" -ge 1 ]"
 check ufw_443_tcp bash -c 'ufw status | grep -qE "^443/tcp[[:space:]]+ALLOW"'
-# Reality отдаёт на чужой запрос настоящий сертификат сайта-прикрытия.
-check reality_decoy bash -c "timeout 15 openssl s_client -connect 127.0.0.1:443 -servername '$REALITY_SNI' -tls1_3 </dev/null 2>/dev/null | grep -q 'Verification: OK\|Verify return code: 0'"
+check ufw_alt_tcp bash -c "ufw status | grep -qE '^$REALITY_ALT_PORT/tcp[[:space:]]+ALLOW'"
+# Reality отдаёт на чужой запрос настоящий сертификат сайта-прикрытия, на обоих портах.
+for port in 443 "$REALITY_ALT_PORT"; do
+  check "reality_decoy_$port" bash -c "timeout 15 openssl s_client -connect 127.0.0.1:$port -servername '$REALITY_SNI' -tls1_3 </dev/null 2>/dev/null | grep -q 'Verification: OK\|Verify return code: 0'"
+done
 fact xray_version "$(/usr/local/bin/xray version | awk 'NR==1{print $2}')"
 finish

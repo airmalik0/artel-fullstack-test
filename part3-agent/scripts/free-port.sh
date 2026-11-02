@@ -8,7 +8,8 @@ load_target "${1:-}"
 proto="${2:-}"
 port="${3:-}"
 [[ "$proto" =~ ^(tcp|udp)$ ]] || { echo "протокол: tcp или udp" >&2; exit 2; }
-[ "$port" = 443 ] || { echo "снимать можно только порт узла: 443" >&2; exit 2; }
+{ [ "$port" = 443 ] || { [ "$proto" = tcp ] && [ "$port" = "$REALITY_ALT_PORT" ]; }; } \
+  || { echo "снимать можно только порты узла: 443 и tcp/$REALITY_ALT_PORT" >&2; exit 2; }
 pick_login || { echo '{"ok":false,"reason":"нет входа"}'; exit 1; }
 
 remote_sh <<REMOTE
