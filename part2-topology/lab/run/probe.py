@@ -51,8 +51,10 @@ async def quic_probe(ip, port, sni):
     from aioquic.quic.configuration import QuicConfiguration
     t0 = time.time(); cfg = QuicConfiguration(is_client=True, alpn_protocols=["h3"], verify_mode=ssl.CERT_NONE, server_name=sni)
     try:
-        q = await asyncio.wait_for(connect(ip, port, configuration=cfg), 3)
-        q.close(); return "quic_ok", 0, time.time() - t0, ""
+        async with asyncio.timeout(3):
+            async with connect(ip, port, configuration=cfg):
+                pass
+        return "quic_ok", 0, time.time() - t0, ""
     except Exception as e:
         return "quic_fail", 0, time.time() - t0, type(e).__name__
 

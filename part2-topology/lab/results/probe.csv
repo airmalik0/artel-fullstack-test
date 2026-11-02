@@ -1,0 +1,151 @@
+target,probe,rep,result,bytes,elapsed_s,note
+https,random64,1,rst,0,0.024,
+https,http_get,1,fin,407,0.021,485454502f312e3120343030
+https,tls_listed_sni,1,tls_ok,0,0.043,TLSv1.3 cert=e3a109d4b737
+https,tls_unlisted_sni,1,tls_ok,0,0.042,TLSv1.3 cert=e3a109d4b737
+reality,random64,1,fin,0,0.022,
+reality,http_get,1,fin,407,0.024,485454502f312e3120343030
+reality,tls_listed_sni,1,tls_ok,0,0.045,TLSv1.3 cert=e3a109d4b737
+reality,tls_unlisted_sni,1,tls_ok,0,0.045,TLSv1.3 cert=e3a109d4b737
+xhttp,random64,1,fin,309,0.022,485454502f312e3120343030
+xhttp,http_get,1,fin,407,0.024,485454502f312e3120343030
+xhttp,tls_listed_sni,1,tls_ok,0,0.043,TLSv1.3 cert=e3a109d4b737
+xhttp,tls_unlisted_sni,1,tls_ok,0,0.043,TLSv1.3 cert=e3a109d4b737
+ss2022,random64,1,rst,0,0.022,
+ss2022,http_get,1,rst,0,0.025,
+ss2022,tls_listed_sni,1,tls_fail,0,0.047,ConnectionResetError
+ss2022,tls_unlisted_sni,1,tls_fail,0,0.046,ConnectionResetError
+ovpn-tcp,random64,1,fin,0,0.023,
+ovpn-tcp,http_get,1,fin,0,0.024,
+ovpn-tcp,tls_listed_sni,1,tls_fail,0,0.042,SSLEOFError
+ovpn-tcp,tls_unlisted_sni,1,tls_fail,0,0.044,SSLEOFError
+wg,random1200,1,silent,0,2.007,
+wg,quic_v1_h3,1,quic_fail,0,3.607,TimeoutError
+awg,random1200,1,silent,0,2.005,
+awg,quic_v1_h3,1,quic_fail,0,3.610,TimeoutError
+ovpn-udp,random1200,1,silent,0,2.007,
+ovpn-udp,quic_v1_h3,1,quic_fail,0,3.609,TimeoutError
+hy2,random1200,1,reply,42,0.022,7d6377cf7f6f4eb8
+hy2,quic_v1_h3,1,quic_ok,0,0.346,
+hy2-obfs,random1200,1,silent,0,2.007,
+hy2-obfs,quic_v1_h3,1,quic_fail,0,3.610,TimeoutError
+https,random64,2,rst,0,0.023,
+https,http_get,2,fin,407,0.025,485454502f312e3120343030
+https,tls_listed_sni,2,tls_ok,0,0.044,TLSv1.3 cert=e3a109d4b737
+https,tls_unlisted_sni,2,tls_ok,0,0.042,TLSv1.3 cert=e3a109d4b737
+reality,random64,2,fin,0,0.023,
+reality,http_get,2,fin,407,0.024,485454502f312e3120343030
+reality,tls_listed_sni,2,tls_ok,0,0.048,TLSv1.3 cert=e3a109d4b737
+reality,tls_unlisted_sni,2,tls_ok,0,0.049,TLSv1.3 cert=e3a109d4b737
+xhttp,random64,2,fin,309,0.022,485454502f312e3120343030
+xhttp,http_get,2,fin,407,0.025,485454502f312e3120343030
+xhttp,tls_listed_sni,2,tls_ok,0,0.049,TLSv1.3 cert=e3a109d4b737
+xhttp,tls_unlisted_sni,2,tls_ok,0,0.049,TLSv1.3 cert=e3a109d4b737
+ss2022,random64,2,rst,0,0.026,
+ss2022,http_get,2,rst,0,0.025,
+ss2022,tls_listed_sni,2,tls_fail,0,0.049,ConnectionResetError
+ss2022,tls_unlisted_sni,2,tls_fail,0,0.046,ConnectionResetError
+ovpn-tcp,random64,2,fin,0,0.024,
+ovpn-tcp,http_get,2,fin,0,0.026,
+ovpn-tcp,tls_listed_sni,2,tls_fail,0,0.043,SSLEOFError
+ovpn-tcp,tls_unlisted_sni,2,tls_fail,0,0.042,SSLEOFError
+wg,random1200,2,silent,0,2.007,
+wg,quic_v1_h3,2,quic_fail,0,3.611,TimeoutError
+awg,random1200,2,silent,0,2.007,
+awg,quic_v1_h3,2,quic_fail,0,3.606,TimeoutError
+ovpn-udp,random1200,2,silent,0,2.003,
+ovpn-udp,quic_v1_h3,2,quic_fail,0,3.605,TimeoutError
+hy2,random1200,2,silent,0,2.007,
+hy2,quic_v1_h3,2,quic_ok,0,0.334,
+hy2-obfs,random1200,2,silent,0,2.007,
+hy2-obfs,quic_v1_h3,2,quic_fail,0,3.607,TimeoutError
+https,random64,3,rst,0,0.025,
+https,http_get,3,fin,407,0.024,485454502f312e3120343030
+https,tls_listed_sni,3,tls_ok,0,0.047,TLSv1.3 cert=e3a109d4b737
+https,tls_unlisted_sni,3,tls_ok,0,0.047,TLSv1.3 cert=e3a109d4b737
+reality,random64,3,fin,309,0.022,485454502f312e3120343030
+reality,http_get,3,fin,407,0.024,485454502f312e3120343030
+reality,tls_listed_sni,3,tls_ok,0,0.044,TLSv1.3 cert=e3a109d4b737
+reality,tls_unlisted_sni,3,tls_ok,0,0.044,TLSv1.3 cert=e3a109d4b737
+xhttp,random64,3,fin,0,0.024,
+xhttp,http_get,3,fin,407,0.025,485454502f312e3120343030
+xhttp,tls_listed_sni,3,tls_ok,0,0.045,TLSv1.3 cert=e3a109d4b737
+xhttp,tls_unlisted_sni,3,tls_ok,0,0.047,TLSv1.3 cert=e3a109d4b737
+ss2022,random64,3,rst,0,0.024,
+ss2022,http_get,3,rst,0,0.024,
+ss2022,tls_listed_sni,3,tls_fail,0,0.046,ConnectionResetError
+ss2022,tls_unlisted_sni,3,tls_fail,0,0.046,ConnectionResetError
+ovpn-tcp,random64,3,fin,0,0.025,
+ovpn-tcp,http_get,3,fin,0,0.024,
+ovpn-tcp,tls_listed_sni,3,tls_fail,0,0.046,SSLEOFError
+ovpn-tcp,tls_unlisted_sni,3,tls_fail,0,0.049,SSLEOFError
+wg,random1200,3,silent,0,2.007,
+wg,quic_v1_h3,3,quic_fail,0,3.612,TimeoutError
+awg,random1200,3,silent,0,2.007,
+awg,quic_v1_h3,3,quic_fail,0,3.607,TimeoutError
+ovpn-udp,random1200,3,silent,0,2.007,
+ovpn-udp,quic_v1_h3,3,quic_fail,0,3.607,TimeoutError
+hy2,random1200,3,silent,0,2.003,
+hy2,quic_v1_h3,3,quic_ok,0,0.302,
+hy2-obfs,random1200,3,silent,0,2.007,
+hy2-obfs,quic_v1_h3,3,quic_fail,0,3.608,TimeoutError
+https,random64,4,rst,0,0.022,
+https,http_get,4,fin,407,0.026,485454502f312e3120343030
+https,tls_listed_sni,4,tls_ok,0,0.049,TLSv1.3 cert=e3a109d4b737
+https,tls_unlisted_sni,4,tls_ok,0,0.046,TLSv1.3 cert=e3a109d4b737
+reality,random64,4,fin,309,0.025,485454502f312e3120343030
+reality,http_get,4,fin,407,0.026,485454502f312e3120343030
+reality,tls_listed_sni,4,tls_ok,0,0.048,TLSv1.3 cert=e3a109d4b737
+reality,tls_unlisted_sni,4,tls_ok,0,0.049,TLSv1.3 cert=e3a109d4b737
+xhttp,random64,4,fin,0,0.025,
+xhttp,http_get,4,fin,407,0.026,485454502f312e3120343030
+xhttp,tls_listed_sni,4,tls_ok,0,0.047,TLSv1.3 cert=e3a109d4b737
+xhttp,tls_unlisted_sni,4,tls_ok,0,0.044,TLSv1.3 cert=e3a109d4b737
+ss2022,random64,4,rst,0,0.022,
+ss2022,http_get,4,rst,0,0.024,
+ss2022,tls_listed_sni,4,tls_fail,0,0.043,ConnectionResetError
+ss2022,tls_unlisted_sni,4,tls_fail,0,0.044,ConnectionResetError
+ovpn-tcp,random64,4,fin,0,0.025,
+ovpn-tcp,http_get,4,fin,0,0.022,
+ovpn-tcp,tls_listed_sni,4,tls_fail,0,0.045,SSLEOFError
+ovpn-tcp,tls_unlisted_sni,4,tls_fail,0,0.041,SSLEOFError
+wg,random1200,4,silent,0,2.005,
+wg,quic_v1_h3,4,quic_fail,0,3.612,TimeoutError
+awg,random1200,4,silent,0,2.006,
+awg,quic_v1_h3,4,quic_fail,0,3.611,TimeoutError
+ovpn-udp,random1200,4,silent,0,2.003,
+ovpn-udp,quic_v1_h3,4,quic_fail,0,3.614,TimeoutError
+hy2,random1200,4,silent,0,2.003,
+hy2,quic_v1_h3,4,quic_ok,0,0.324,
+hy2-obfs,random1200,4,silent,0,2.007,
+hy2-obfs,quic_v1_h3,4,quic_fail,0,3.609,TimeoutError
+https,random64,5,rst,0,0.024,
+https,http_get,5,fin,407,0.025,485454502f312e3120343030
+https,tls_listed_sni,5,tls_ok,0,0.044,TLSv1.3 cert=e3a109d4b737
+https,tls_unlisted_sni,5,tls_ok,0,0.042,TLSv1.3 cert=e3a109d4b737
+reality,random64,5,fin,309,0.022,485454502f312e3120343030
+reality,http_get,5,fin,407,0.024,485454502f312e3120343030
+reality,tls_listed_sni,5,tls_ok,0,0.043,TLSv1.3 cert=e3a109d4b737
+reality,tls_unlisted_sni,5,tls_ok,0,0.046,TLSv1.3 cert=e3a109d4b737
+xhttp,random64,5,fin,0,0.022,
+xhttp,http_get,5,fin,407,0.020,485454502f312e3120343030
+xhttp,tls_listed_sni,5,tls_ok,0,0.046,TLSv1.3 cert=e3a109d4b737
+xhttp,tls_unlisted_sni,5,tls_ok,0,0.045,TLSv1.3 cert=e3a109d4b737
+ss2022,random64,5,rst,0,0.021,
+ss2022,http_get,5,rst,0,0.025,
+ss2022,tls_listed_sni,5,tls_fail,0,0.043,ConnectionResetError
+ss2022,tls_unlisted_sni,5,tls_fail,0,0.042,ConnectionResetError
+ovpn-tcp,random64,5,fin,0,0.022,
+ovpn-tcp,http_get,5,fin,0,0.021,
+ovpn-tcp,tls_listed_sni,5,tls_fail,0,0.046,SSLEOFError
+ovpn-tcp,tls_unlisted_sni,5,tls_fail,0,0.045,SSLEOFError
+wg,random1200,5,silent,0,2.003,
+wg,quic_v1_h3,5,quic_fail,0,3.613,TimeoutError
+awg,random1200,5,silent,0,2.007,
+awg,quic_v1_h3,5,quic_fail,0,3.613,TimeoutError
+ovpn-udp,random1200,5,silent,0,2.007,
+ovpn-udp,quic_v1_h3,5,quic_fail,0,3.610,TimeoutError
+hy2,random1200,5,silent,0,2.007,
+hy2,quic_v1_h3,5,quic_ok,0,0.317,
+hy2-obfs,random1200,5,silent,0,2.007,
+hy2-obfs,quic_v1_h3,5,quic_fail,0,3.610,TimeoutError

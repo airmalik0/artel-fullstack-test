@@ -11,7 +11,8 @@ if [ "${1:-}" = gen ]; then
   ./lab.sh ssh client 'sudo tar -C /etc/lab -xzf /tmp/cli.tgz'
 fi
 ./lab.sh ssh server 'sudo bash /tmp/provision/services-up.sh' > /dev/null 2>&1
-for f in proto.sh fetch.sh parallel.sh rep.sh sb-config.py watchdog.py probeloop.sh; do ./lab.sh scp client run/$f /tmp/$f; done
-./lab.sh ssh client 'sudo cp /tmp/proto.sh /tmp/fetch.sh /tmp/parallel.sh /tmp/rep.sh /tmp/sb-config.py /tmp/watchdog.py /tmp/probeloop.sh /opt/lab/; sudo chmod +x /opt/lab/*.sh; sudo ethtool -K lana tso off gso off gro off lro off 2>/dev/null || true'
+for f in proto.sh fetch.sh parallel.sh rep.sh sb-config.py watchdog.py probeloop.sh sbctl.sh; do ./lab.sh scp client run/$f /tmp/$f; done
+./lab.sh ssh client 'sudo cp /tmp/proto.sh /tmp/fetch.sh /tmp/parallel.sh /tmp/rep.sh /tmp/sb-config.py /tmp/watchdog.py /tmp/probeloop.sh /tmp/sbctl.sh /opt/lab/; sudo chmod +x /opt/lab/*.sh; sudo ethtool -K lana tso off gso off gro off lro off 2>/dev/null || true'
 ./lab.sh scp tspu tspu/ /tmp/tspu-new
+./lab.sh scp tspu run/probe.py /tmp/tspu-new/probe.py
 ./lab.sh ssh tspu 'sudo cp -r /tmp/tspu-new/* /opt/lab/; rm -rf /tmp/tspu-new; sudo chmod +x /opt/lab/*.sh /opt/lab/*.py 2>/dev/null || true'
