@@ -22,16 +22,15 @@ fi
 [ -n "$TOKEN" ] || { echo "нет токена: заполни DEEPSEEK_API_KEY в .env" >&2; exit 1; }
 
 # Ключи Anthropic из окружения владельца не должны перебить DeepSeek.
-unset ANTHROPIC_API_KEY CLAUDE_CODE_OAUTH_TOKEN DEEPSEEK_API_KEY
+unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN CLAUDE_CODE_OAUTH_TOKEN DEEPSEEK_API_KEY
 unset CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY
 
+# WIRE_TAP_PORT включает просмотр запросов через tools/wire-tap.py.
 export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
-export ANTHROPIC_AUTH_TOKEN="$TOKEN"
-unset TOKEN
+[ -z "${WIRE_TAP_PORT:-}" ] || ANTHROPIC_BASE_URL="http://127.0.0.1:$WIRE_TAP_PORT"
 
 # Эти переменные должны действовать с первой секунды, до чтения settings.json.
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 export DISABLE_AUTOUPDATER=1
 export DISABLE_TELEMETRY=1
@@ -43,6 +42,13 @@ export CLAUDE_CONFIG_DIR="$AGENT_HOME"
 export HOME="$AGENT_HOME/home"
 mkdir -p "$HOME"
 chmod 700 "$AGENT_HOME"
+
+# Токена нет в окружении claude, значит его нет и у bash агента. Claude Code берёт
+# его из файла через apiKeyHelper. CLAUDE_CODE_SUBPROCESS_ENV_SCRUB здесь не подходит:
+# на Linux он загоняет в песочницу все команды, а шаги развёртывания живут вне неё.
+TOKEN_FILE="$AGENT_HOME/api-token"
+( umask 077; printf '%s\n' "$TOKEN" >"$TOKEN_FILE" )
+unset TOKEN
 
 # Первый запуск без мастера и без вопроса о доверии папке.
 python3 - "$AGENT_HOME/.claude.json" "$ROOT" <<'PY'
@@ -63,10 +69,13 @@ PY
 # только здесь, поэтому правило собирается при запуске. Если сама папка агента
 # лежит в домашнем каталоге, она открывается обратно, секреты внутри неё закрыты
 # в settings.json.
-RUNTIME_SETTINGS="$(python3 - "$REAL_HOME" "$ROOT" <<'PY'
-import json, sys
-home, root = sys.argv[1], sys.argv[2]
-print(json.dumps({"sandbox": {"filesystem": {"denyRead": [home], "allowRead": [root]}}}))
+RUNTIME_SETTINGS="$(python3 - "$REAL_HOME" "$ROOT" "$TOKEN_FILE" <<'PY'
+import json, shlex, sys
+home, root, token_file = sys.argv[1:4]
+print(json.dumps({
+    "apiKeyHelper": "cat " + shlex.quote(token_file),
+    "sandbox": {"filesystem": {"denyRead": [home], "allowRead": [root]}},
+}))
 PY
 )"
 

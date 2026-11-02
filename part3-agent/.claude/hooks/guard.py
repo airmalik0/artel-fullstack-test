@@ -72,6 +72,10 @@ def check_path(raw, writing=False):
 
 if tool in ("Bash", "Monitor"):
     command = str(args.get("command", ""))
+    # Составная команда не совпадёт с разрешением и останется в песочнице, где нет
+    # ни ключей, ни сети. Подсказка экономит модели ход на ложный сбой.
+    if "scripts/" in command and re.search(r"[;&|`\n]|\$\(", command.strip()):
+        deny("скрипты запускай ровно одной командой из корня папки, без ; && | и подстановок. Код возврата виден в результате вызова")
     for pattern, what in BASH_DENY:
         if re.search(pattern, command):
             deny(f"команда затрагивает: {what}")

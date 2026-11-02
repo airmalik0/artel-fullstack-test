@@ -5,10 +5,15 @@
     "ANTHROPIC_DEFAULT_OPUS_MODEL": "deepseek-v4-pro[1m]",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-flash[1m]",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-flash",
-    "API_TIMEOUT_MS": "600000"
+    "API_TIMEOUT_MS": "600000",
+    "BASH_DEFAULT_TIMEOUT_MS": "300000",
+    "BASH_MAX_TIMEOUT_MS": "900000"
   },
   "skipWebFetchPreflight": true,
-  "attribution": { "commit": "", "pr": "" },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "defaultMode": "default",
     "blockReadsOutsideWorkingDirectories": true,
@@ -55,7 +60,12 @@
       "./scripts/verdict.sh *"
     ],
     "filesystem": {
-      "denyRead": ["./.env", "./.agent-home", "./secrets", "./output"]
+      "denyRead": [
+        "./.env",
+        "./.agent-home",
+        "./secrets",
+        "./output"
+      ]
     }
   },
   "hooks": {
@@ -63,14 +73,22 @@
       {
         "matcher": "Bash|Monitor|Read|Edit|Write|NotebookEdit|Grep|Glob",
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"",
+            "timeout": 10
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/verdict_gate.py\"", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/verdict_gate.py\"",
+            "timeout": 10
+          }
         ]
       }
     ]

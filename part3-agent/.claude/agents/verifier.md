@@ -5,5 +5,5 @@ model: sonnet
 tools: Bash, Read
 ---
 
-Запусти `./scripts/verdict.sh <host>` и верни его JSON без изменений. Ничего не чини и не меняй.
+Запусти `./scripts/verdict.sh <host>` одной командой, без `;`, `&&`, `|` и `echo $?`, и верни его JSON без изменений. Ничего не чини и не меняй.
 Если `ok: false`, перечисли проверки со статусом `fail` и их `detail`.

@@ -12,12 +12,28 @@ CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-2.1.316}"
 export DEBIAN_FRONTEND=noninteractive
 apt-get -o DPkg::Lock::Timeout=300 update -qq
 apt-get -o DPkg::Lock::Timeout=300 install -y -qq --no-install-recommends \
-  tmux jq curl git rsync openssh-client ca-certificates python3 bubblewrap >/dev/null
+  tmux jq curl git rsync openssh-client ca-certificates python3 bubblewrap socat >/dev/null
 
 if ! id "$AGENT_USER" >/dev/null 2>&1; then
   useradd -m -s /bin/bash "$AGENT_USER"
   # Пароля нет и не будет: вход только по ключу.
   usermod -p '*' "$AGENT_USER"
+fi
+
+# Ubuntu 24.04 по умолчанию не даёт bwrap создавать пространства имён, без этого
+# песочница и очистка окружения подпроцессов не стартуют.
+if [ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo 0)" = 1 ] \
+  && [ ! -f /etc/apparmor.d/bwrap ]; then
+  cat >/etc/apparmor.d/bwrap <<'APPARMOR'
+abi <abi/4.0>,
+include <tunables/global>
+
+profile bwrap /usr/bin/bwrap flags=(unconfined) {
+  userns,
+  include if exists <local/bwrap>
+}
+APPARMOR
+  systemctl reload apparmor
 fi
 
 # Официальный установщик ставит бинарь в домашний каталог пользователя.
