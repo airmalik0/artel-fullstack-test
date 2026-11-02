@@ -7,6 +7,8 @@ PROTOS = "https-ok https-blocked https-wl wg awg ovpn-udp ovpn-tcp ss2022 realit
 SCEN = "off pass sni_rst sni_drop quic_all quic_sni vpn_sig curtain_tls curtain_all fet_gfw fet_ru conn_limit wl_ip".split()
 RUHOST_TOO = {"curtain_tls", "curtain_all", "wl_ip"}   # там важен второй адрес вне множества хостингов
 PAR = {"off", "conn_limit"}
+THR = {"off", "pass"}     # 16 МиБ качаем только там: правила модели не трогают поток после решения, а время прогона втрое меньше
+RUHOST_PROTOS = {"https-ok", "wg", "awg", "ss2022", "reality", "xhttp", "hy2", "hy2-obfs"}
 FIELDS = ("ts scenario proto target rep tunnel_ok tunnel_up_s http_1k ttfb_s cold_ttfb_s bytes_1m complete_1m "
           "wire_rx_1m thr_bytes thr_s thr_mbit wire_tx_bytes overhead_pct par_ok").split()
 
@@ -38,7 +40,7 @@ def one(sc, p, tgt, rep):
         row["bytes_1m"] = int(d["m1"][5]); row["complete_1m"] = int(int(d["m1"][5]) == 1048576)
     if "wire" in d:
         row["wire_rx_1m"] = d["wire"][0]
-    if row["complete_1m"]:
+    if row["complete_1m"] and sc in THR:
         a = tx()
         o = ssh("client", f"sudo {env(sc)} /opt/lab/fetch.sh {p} 16m 30 {off}").split()
         b = tx()
@@ -69,7 +71,7 @@ def main():
         ssh("tspu", f"sudo /opt/lab/ctl.py set {sc}")
         t0 = time.time()
         for p in x.protos.split(","):
-            for tgt in (["foreign", "ruhost"] if sc in RUHOST_TOO else ["foreign"]):
+            for tgt in (["foreign", "ruhost"] if sc in RUHOST_TOO and p in RUHOST_PROTOS else ["foreign"]):
                 for r in range(1, x.reps + 1):
                     try:
                         w.writerow(one(sc, p, tgt, r))

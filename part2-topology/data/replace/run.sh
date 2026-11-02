@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Замер смены выходного узла на DigitalOcean: от запроса на создание дроплета до первого успешного
-# запроса через новый узел по Reality и по Hysteria2. Клиент: ВМ client стенда, выход через user-сеть.
+# запроса через новый узел по Reality и по Hysteria2. Клиент: мак, бинарники тех же версий в $BIN.
 # run.sh <повторов> <out.csv>. Дроплет artel-p2-replace-N удаляется по id сразу после повтора.
 set -euo pipefail
-N=$1; OUT=$2; LAB="$(cd "$(dirname "$0")/../../lab" && pwd)"
+N=$1; OUT=$2; BIN="${BIN:-$HOME/Projects/artel-test-work/part2/bin}"
 export DIGITALOCEAN_ACCESS_TOKEN="$(cat ~/.config/do-token)"
 echo "rep,created_s,reality_ok_s,hy2_ok_s,droplet_id" > "$OUT"
 for r in $(seq 1 "$N"); do
-  UUID=$("$LAB/lab.sh" ssh client 'xray uuid'); X=$("$LAB/lab.sh" ssh client 'xray x25519')
+  UUID=$("$BIN/xray" uuid); X=$("$BIN/xray" x25519)
   PRIV=$(echo "$X" | awk -F': ' 'NR==1{print $2}'); PUB=$(echo "$X" | awk -F': ' 'NR==2{print $2}')
   SID=$(openssl rand -hex 8); HP=$(openssl rand -hex 16)
   UD=$(mktemp); cat > "$UD" <<C
@@ -35,26 +35,26 @@ C
   L=$(doctl compute droplet create "artel-p2-replace-$r" --region fra1 --size s-1vcpu-512mb-10gb --image debian-13-x64 --ssh-keys 60396056 --tag-name lab --user-data-file "$UD" --wait --format ID,PublicIPv4 --no-header)
   rm -f "$UD"; ID=$(echo "$L" | awk '{print $1}'); IP=$(echo "$L" | awk '{print $2}')
   t1=$(python3 -c 'import time;print(time.time())')
-  cat > /tmp/rx.json <<J
+  W=$(mktemp -d)
+  cat > "$W/rx.json" <<J
 {"inbounds":[{"listen":"127.0.0.1","port":10811,"protocol":"socks"}],"outbounds":[{"protocol":"vless","settings":{"vnext":[{"address":"$IP","port":443,"users":[{"id":"$UUID","encryption":"none","flow":"xtls-rprx-vision"}]}]},
 "streamSettings":{"network":"raw","security":"reality","realitySettings":{"serverName":"www.microsoft.com","fingerprint":"chrome","publicKey":"$PUB","shortId":"$SID"}}}]}
 J
-  printf 'server: %s:443\nauth: %s\ntls: {insecure: true, sni: www.microsoft.com}\nsocks5: {listen: 127.0.0.1:10812}\n' "$IP" "$HP" > /tmp/rh.yaml
-  "$LAB/lab.sh" scp client /tmp/rx.json /tmp/rx.json; "$LAB/lab.sh" scp client /tmp/rh.yaml /tmp/rh.yaml
-  "$LAB/lab.sh" ssh client 'nohup xray run -c /tmp/rx.json >/tmp/rx.log 2>&1 & sleep 0.2'
-  t2=""; t3=""
+  printf 'server: %s:443\nauth: %s\ntls: {insecure: true, sni: www.microsoft.com}\nsocks5: {listen: 127.0.0.1:10812}\n' "$IP" "$HP" > "$W/rh.yaml"
+  "$BIN/xray" run -c "$W/rx.json" >"$W/rx.log" 2>&1 & XP=$!
+  HP2=""; t2=""; t3=""
   for _ in $(seq 1 150); do
-    if [ -z "$t2" ] && [ "$("$LAB/lab.sh" ssh client "curl -s -o /dev/null -w '%{http_code}' --max-time 3 --socks5-hostname 127.0.0.1:10811 https://www.gstatic.com/generate_204")" = 204 ]; then
+    if [ -z "$t2" ] && [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 --socks5-hostname 127.0.0.1:10811 https://www.gstatic.com/generate_204)" = 204 ]; then
       t2=$(python3 -c 'import time;print(time.time())')
-      "$LAB/lab.sh" ssh client 'HYSTERIA_DISABLE_UPDATE_CHECK=1 nohup hysteria client -c /tmp/rh.yaml >/tmp/rh.log 2>&1 & sleep 0.2'
+      HYSTERIA_DISABLE_UPDATE_CHECK=1 "$BIN/hysteria" client -c "$W/rh.yaml" >"$W/rh.log" 2>&1 & HP2=$!
     fi
-    if [ -n "$t2" ] && [ "$("$LAB/lab.sh" ssh client "curl -s -o /dev/null -w '%{http_code}' --max-time 3 --socks5-hostname 127.0.0.1:10812 https://www.gstatic.com/generate_204")" = 204 ]; then
+    if [ -n "$t2" ] && [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 --socks5-hostname 127.0.0.1:10812 https://www.gstatic.com/generate_204)" = 204 ]; then
       t3=$(python3 -c 'import time;print(time.time())'); break
     fi
     sleep 1
   done
   python3 -c "print('$r,%.1f,%s,%s,$ID'%($t1-$t0, '%.1f'%($t2-$t0) if '$t2' else '', '%.1f'%($t3-$t0) if '$t3' else ''))" >> "$OUT"
-  "$LAB/lab.sh" ssh client 'for n in xray hysteria; do p=$(pgrep -x $n | tr "\n" " "); [ -n "$p" ] && kill $p; done; true'
+  kill "$XP" ${HP2:+"$HP2"} 2>/dev/null || true; rm -rf "$W"
   doctl compute droplet delete "$ID" --force
 done
 doctl compute droplet list --format ID,Name --no-header | grep artel-p2-replace || echo "replace droplets gone"

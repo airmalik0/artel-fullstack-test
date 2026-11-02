@@ -2,7 +2,7 @@
 source /tmp/provision/common.sh
 apt_install nftables conntrack ethtool tcpdump python3-venv python3-dev gcc libnetfilter-queue-dev libnfnetlink-dev python3-cryptography iproute2
 python3 -m venv --system-site-packages /opt/tspu-venv
-/opt/tspu-venv/bin/pip -q install NetfilterQueue
+/opt/tspu-venv/bin/pip -q install NetfilterQueue aioquic
 mkdir -p /opt/lab /etc/lab
 cat > /etc/sysctl.d/90-lab.conf <<S
 net.ipv4.ip_forward=1

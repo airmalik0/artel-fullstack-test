@@ -14,16 +14,17 @@ client 10.10.1.2 ── lana ── tspu 10.10.1.1 / 10.10.2.1 ── lanb ─�
 
 ## Как поднять и повторить
 
-Нужны brew-пакет `qemu`, `gh` не нужен. Версии протокольного ПО закреплены в `provision/common.sh`. Диски и ключи стенда лежат вне репо, каталог задаёт `LAB_WORK`.
+Нужен brew-пакет `qemu`. Версии протокольного ПО закреплены в `provision/common.sh`. Диски и ключи стенда лежат вне репо, каталог задаёт `LAB_WORK`.
 
 ```
 ./lab.sh up              # скачать образ, создать ВМ, дождаться cloud-init
 ./lab.sh provision       # пакеты и бинарники, 3-5 минут
 ./sync.sh gen            # ключи, конфиги, запуск сервисов, раскладка скриптов
-run/matrix.py --out results/matrix.csv --reps 7                 # полная матрица, около часа
-run/matrix.py --out results/matrix.csv --reps 15 --scenarios off --protos ...   # контроль
+run/proof.py results/proof.csv 5                                 # обязательная проба, 15 минут
+run/matrix.py --out results/matrix.csv --reps 15 --scenarios off # контроль
+run/matrix.py --out results/matrix.csv --append --reps 7 --scenarios pass
+run/matrix.py --out results/matrix.csv --append --reps 5 --scenarios sni_rst,sni_drop,quic_all,quic_sni,vpn_sig,curtain_tls,curtain_all,fet_gfw,fet_ru,conn_limit,wl_ip
 run/failover.py results/failover.csv 7                           # переключение клиента
-./lab.sh ssh tspu 'sudo /opt/tspu-venv/bin/pip -q install aioquic'
 ./lab.sh ssh tspu 'sudo /opt/lab/ctl.py set off; sudo /opt/tspu-venv/bin/python3 /opt/lab/probe.py 5' > results/probe.csv
 run/summary.py results/matrix.csv --md
 ./lab.sh down
@@ -46,9 +47,14 @@ run/summary.py results/matrix.csv --md
 | `curtain_all` | 25 пакетов в любую сторону, TCP и UDP, для UDP бан адреса на 600 с | #490, upd5 и комментарий 28.06.2025 |
 | `fet_gfw` | правила Ex1-Ex5 по первому пакету к «хостингу», срабатывают всегда, у GFW около 26 % | Wu et al., USENIX Security 2023. Наблюдение за GFW, в РФ не показано |
 | `fet_ru` | поток не TLS снаружи, клиент дал не меньше 3 пакетов от 411 байт, сервер шлёт чаще клиента | net4people #363, 13.05.2024 |
+| `reality-mux` | не сценарий, а вариант протокола: Reality без Vision с mux Xray на 8 потоков, как советует #546 | |
 | `conn_limit` | больше 12 TLS-соединений к адресу:443 за 30 с: блок пары на 60 с | net4people #546 (механизм), ntc.party 22.05.2026 (порог 12, одиночный отчёт) |
 | `wl_ip` | наружу только в 10.10.2.128/25, SYN к остальным проходит, данные нет | net4people #516, #650 |
 | активное зондирование | `run/probe.py`, запросы с tspu напрямую к сервисам | гипотеза, для ТСПУ не показано; сравнение только по ответам сервисов |
+
+`run/proof.py` проверяет каждое правило парой выключено/включено на заведомо запрещённом протоколе. Для `conn_limit` критерий другой: одиночный запрос проходит, из 20 одновременных не проходит ни один.
+
+В `fet_ru` туннели несут HTTPS, а не HTTP: по [#363] обычный HTTP внутри туннеля правило не задевает. Клиент делает три запроса с длинной Cookie в одном соединении, чтобы дать три пакета от 411 байт. Это моя подгонка под описание, настоящий браузер шлёт другой рисунок.
 
 Каждый повтор начинается со сброса conntrack и состояния модели, поэтому residual-блокировка не переходит из повтора в повтор. В настоящей сети она переходит, и повторные попытки клиента её продлевают.
 
@@ -60,7 +66,7 @@ run/summary.py results/matrix.csv --md
 - `http_1k`, `ttfb_s`, `cold_ttfb_s`: запрос 1 КиБ через только что поднятый туннель, `cold_ttfb_s = tunnel_up_s + ttfb_s`.
 - `bytes_1m`, `complete_1m`: сколько байт полезной нагрузки из 1 МиБ получил curl до остановки (остановка: меньше 256 байт/с за 3 с). Запись TLS 16 КиБ не расшифруется, пока не придёт целиком, поэтому при обрыве на 16 КиБ здесь может быть 0.
 - `wire_rx_1m`: сколько байт за то же время пришло на интерфейс клиента. Включает рукопожатие и заголовки, это и есть байты до остановки на проводе.
-- `thr_bytes`, `thr_s`, `thr_mbit`: скачивание 16 МиБ случайных данных через тот же туннель.
+- `thr_bytes`, `thr_s`, `thr_mbit`: скачивание 16 МиБ случайных данных через тот же туннель. Только в `off` и `pass`: правила модели решают в начале потока, а полная матрица с этим шагом шла бы 4,5 часа.
 - `wire_tx_bytes`, `overhead_pct`: байты на интерфейсе tspu к клиенту за эти 16 МиБ, включая заголовки Ethernet. Базовый уровень задаёт `https-ok`.
 - `par_ok`: сколько из 20 одновременных запросов 256 КиБ завершилось (только `off` и `conn_limit`).
 
