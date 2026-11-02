@@ -98,11 +98,13 @@ TLS идёт от бота до Telegram, реле видит только ши�
 |---|---|---|
 | сухой прогон | rc=0, процессы и суммы файлов без разницы, `/opt/botfix` не появился | `droplet/15-real-dry-and-stop.txt` |
 | `--apply` без внешнего реле | rc=3, `503 relay link down`, суммы файлов прежние, `pong от pid 55`: ответил прежний бот через старое реле | `droplet/15-real-dry-and-stop.txt` |
-| `--apply` с внешним реле | rc=0, `.env` 640 root:10001, `PermissionError` 0, `pong от pid 441`, `эхо от pid 441: после переключения` | `droplet/16-real-apply.txt` |
-| откат | суммы файлов совпали с исходными, `run_prod.py` запущен заново, `pong от pid 529` через старое реле | `droplet/17-real-rollback.txt` |
+| `--apply` с внешним реле | rc=0, `.env` 640 root:10001, `PermissionError` 0, `pong от pid 436`, `эхо от pid 436: после переключения` | `droplet/16-real-apply.txt` |
+| откат | суммы файлов совпали с исходными, `run_prod.py` запущен заново, `pong от pid 525` через старое реле | `droplet/17-real-rollback.txt` |
 | приманки при мёртвом боте | по имени видно 2 процесса, healthcheck `RED getMe ... отвечает, но процесса бота нет`, чужой процесс жив | `droplet/18-real-decoy.txt` |
 | завершившийся pid | `stop_pids` прошёл до конца под `set -eu`, rc=0 | `droplet/18-real-decoy.txt` |
-| перезапуск контейнера | PID 1 супервизор, приманки нет, `GREEN`, `pong от pid 8` | `droplet/19-real-restart.txt` |
+| перезапуск контейнера | PID 1 супервизор, приманки нет, `GREEN`, `pong от pid 9` | `droplet/19-real-restart.txt` |
+| команда в argv процесса бота | откат запускает строку из профиля, а не argv из `/proc`: процесс uid 10001 с переводом строки и `touch` в аргументах, откат rc=0, файлов от подложенной строки 0 | `droplet/20-real-rollback-fixed-line.txt` |
+| файл запуска открыт на запись | откат от root отказывается: `не принадлежит root или открыт на запись другим`, rc=1, `run_prod.py` не запущен | `droplet/21-real-rollback-refuses.txt` |
 
 Найденная по пути проблема: в первом прогоне один ответ потерялся. Обновление бот забрал, в журнале бота
 `TimedOut`, ответа нет, PTB такую отправку не повторяет, а healthcheck в этот момент был зелёным. Прямые

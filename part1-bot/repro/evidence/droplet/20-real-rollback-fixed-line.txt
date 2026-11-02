@@ -1,0 +1,12 @@
+# Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
+17:35:23 # процесс uid 10001: перевод строки и команда в argv, последний аргумент кончается на run_prod.py
+17:35:28 # --apply
+rc=0
+строка запуска прежнего бота (задана профилем, из /proc не берётся: argv пишет сам процесс):
+  cd /opt/bots/amigo && exec /usr/local/bin/python3 -B /opt/bots/amigo/run_prod.py
+17:36:35 # откат
+Запуск прежнего бота от root:
+  setsid bash -c cd\ /opt/bots/amigo\ \&\&\ exec\ /usr/local/bin/python3\ -B\ /opt/bots/amigo/run_prod.py </dev/null >>/var/log/botfix/old-bot.out 2>&1 &
+Прежний бот запущен, pid 828.
+rc=0
+17:36:48 # файлов от подложенной строки: 0

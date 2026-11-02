@@ -26,10 +26,14 @@ done
 case $PROFILE in
   real)
     BOT_DIR=/opt/bots/amigo BOT_MODULE=amigo.main MAIN_PY=/opt/bots/amigo/amigo/main.py OLD_NAMES="amigo.main run_prod.py"
-    OLD_BACKUP=/usr/local/sbin/amigo-backup.sh BACKUP_DIR=/var/backups/amigo BACKUP_NAME=amigo-src ;;
+    OLD_BACKUP=/usr/local/sbin/amigo-backup.sh BACKUP_DIR=/var/backups/amigo BACKUP_NAME=amigo-src
+    OLD_ENTRY=/opt/bots/amigo/run_prod.py  # сам читает .env и сбрасывает права, стартует от root
+    OLD_START_LINE="cd /opt/bots/amigo && exec /usr/local/bin/python3 -B $OLD_ENTRY" ;;
   stand)
     BOT_DIR=/opt/bots/demo BOT_MODULE=demo_bot MAIN_PY=/opt/bots/demo/demo_bot.py OLD_NAMES=demo_bot.py
-    OLD_BACKUP=/usr/local/sbin/demo-backup.sh BACKUP_DIR=/var/backups/demo BACKUP_NAME=demo-src ;;
+    OLD_BACKUP=/usr/local/sbin/demo-backup.sh BACKUP_DIR=/var/backups/demo BACKUP_NAME=demo-src
+    OLD_ENTRY=/opt/bots/demo/demo_bot.py
+    OLD_START_LINE="cd /opt/bots/demo && set -a && . ./.env && set +a && exec setpriv --reuid=10001 --regid=10001 --clear-groups python3 -u demo_bot.py" ;;
   *) echo "профиль: real или stand" >&2; exit 2 ;;
 esac
 
@@ -118,22 +122,6 @@ stop_pids() {  # процесс мог завершиться сам, под set
   say "не завершились за 10 с:$left, kill -9"
   kill -9 $left 2>/dev/null || true
   sleep 1
-}
-start_lines() {  # точная строка запуска верхних процессов: argv из /proc, не по памяти
-  python3 - "$BOT_DIR" "$@" <<'PY'
-import os, shlex, sys
-bot_dir, pids = sys.argv[1], set(sys.argv[2:])
-for pid in sorted(pids, key=int):
-    if open(f"/proc/{pid}/stat").read().rsplit(")", 1)[1].split()[1] in pids:
-        continue  # потомка поднимет родитель
-    argv = open(f"/proc/{pid}/cmdline", "rb").read().decode().split("\0")[:-1]
-    st, cmd = os.stat(f"/proc/{pid}"), shlex.join(argv)
-    if any(a.endswith("run_prod.py") for a in argv):  # сам читает .env и сбрасывает права, стартует от root
-        print(f"cd {shlex.quote(bot_dir)} && exec {cmd}")
-    else:
-        print(f"cd {shlex.quote(bot_dir)} && set -a && . ./.env && set +a && exec setpriv "
-              f"--reuid={st.st_uid} --regid={st.st_gid} --clear-groups {cmd}")
-PY
 }
 stop_with() {  # остановка до правок: прежний бот работает как работал
   say "СТОП: $1"
@@ -273,16 +261,19 @@ say "== 7. переключение =="
 OLD=$(pids_of $OLD_NAMES | tr '\n' ' ')
 OLD_START=$LOG_DIR/old-start-$STAMP.txt
 if [ -n "$OLD" ]; then
-  say "строка запуска прежнего бота:"
-  start_lines $OLD | while IFS= read -r line; do say "  $line"; [ "$MODE" = dry ] || echo "$line" >>"$OLD_START"; done
+  say "строка запуска прежнего бота (задана профилем, из /proc не берётся: argv пишет сам процесс):"
+  say "  $OLD_START_LINE"
+  [ "$MODE" = dry ] || echo "$OLD_START_LINE" >>"$OLD_START"
 fi
 if [ "$MODE" = apply ]; then cat >>"$ROLLBACK" <<TAIL
 # Файлы восстановлены выше. Дальше новое останавливается и возвращается прежний процесс.
 alive() { s=\$(sed 's/.*) //; s/ .*//' "/proc/\$1/stat" 2>/dev/null) && [ "\$s" != Z ]; }
 START=$OLD_START
+LINE=$(printf %q "$OLD_START_LINE")
+ENTRY=$OLD_ENTRY
 if [ -s "\$START" ]; then
   echo "Запуск прежнего бота от root:"
-  while IFS= read -r line; do printf "  setsid bash -c %q </dev/null >>$LOG_DIR/old-bot.out 2>&1 &\n" "\$line"; done <"\$START"
+  printf "  setsid bash -c %q </dev/null >>$LOG_DIR/old-bot.out 2>&1 &\n" "\$LINE"
 fi
 SV=\$(cat $STATE_DIR/supervisor.pid 2>/dev/null || true)
 if [ "\$SV" = 1 ]; then
@@ -294,13 +285,15 @@ if [ -n "\$SV" ]; then
   i=0; while [ \$i -lt 15 ] && alive "\$SV"; do sleep 1; i=\$((i + 1)); done  # супервизор ждёт своих детей
 fi
 [ -s "\$START" ] || { echo "Прежнего бота не было, запускать нечего."; exit 0; }
-while IFS= read -r line; do
-  setsid bash -c "\$line" </dev/null >>$LOG_DIR/old-bot.out 2>&1 &
-  pid=\$!
-  sleep 3
-  if alive "\$pid"; then echo "Прежний бот запущен, pid \$pid."
-  else echo "ПРЕЖНИЙ БОТ НЕ ЗАПУСТИЛСЯ, журнал $LOG_DIR/old-bot.out, строка выше."; fi
-done <"\$START"
+case "\$(stat -c '%u %a' "\$ENTRY" 2>/dev/null)" in  # строка идёт от root, файл не должен быть чужим
+  "0 "[0-7][0145][0145]) ;;
+  *) echo "\$ENTRY не принадлежит root или открыт на запись другим, прежний бот не запущен."; exit 1 ;;
+esac
+setsid bash -c "\$LINE" </dev/null >>$LOG_DIR/old-bot.out 2>&1 &
+pid=\$!
+sleep 3
+if alive "\$pid"; then echo "Прежний бот запущен, pid \$pid."
+else echo "ПРЕЖНИЙ БОТ НЕ ЗАПУСТИЛСЯ, журнал $LOG_DIR/old-bot.out, строка выше."; fi
 TAIL
 fi
 say "прежние процессы бота: ${OLD:-нет}"
@@ -330,8 +323,8 @@ REMOTE
 
 rc=0
 {
-  printf 'MODE=%q BOT_DIR=%q BOT_MODULE=%q BOT_UID=10001 MAIN_PY=%q OLD_BACKUP=%q BACKUP_DIR=%q BACKUP_NAME=%q OLD_NAMES=%q\n' \
-    "$MODE" "$BOT_DIR" "$BOT_MODULE" "$MAIN_PY" "$OLD_BACKUP" "$BACKUP_DIR" "$BACKUP_NAME" "$OLD_NAMES"
+  printf 'MODE=%q BOT_DIR=%q BOT_MODULE=%q BOT_UID=10001 MAIN_PY=%q OLD_BACKUP=%q BACKUP_DIR=%q BACKUP_NAME=%q OLD_NAMES=%q OLD_ENTRY=%q OLD_START_LINE=%q\n' \
+    "$MODE" "$BOT_DIR" "$BOT_MODULE" "$MAIN_PY" "$OLD_BACKUP" "$BACKUP_DIR" "$BACKUP_NAME" "$OLD_NAMES" "$OLD_ENTRY" "$OLD_START_LINE"
   echo "TOKEN_GIVEN=$([ -n "$TOKEN_FILE" ] && echo 1 || echo 0)"
   if [ -n "$TOKEN_FILE" ] && [ "$MODE" = apply ]; then printf 'NEW_TOKEN=%q\n' "$(cat "$TOKEN_FILE")"
   else echo 'NEW_TOKEN='; fi

@@ -1,27 +1,27 @@
 # Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
-17:17:54 # откат
+17:35:07 # откат
 Запуск прежнего бота от root:
   setsid bash -c cd\ /opt/bots/amigo\ \&\&\ exec\ /usr/local/bin/python3\ -B\ /opt/bots/amigo/run_prod.py </dev/null >>/var/log/botfix/old-bot.out 2>&1 &
-Прежний бот запущен, pid 521.
+Прежний бот запущен, pid 517.
 rc=0
-17:18:04 # состояние
+17:35:17 # состояние
    1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
-   7 uid=0 Z (зомби)
-  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
-  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+   6 uid=0 Z (зомби)
+  18 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  24 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
   36 uid=10001 Z (зомби)
-  49 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  43 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
   55 uid=10001 Z (зомби)
- 207 uid=10001 Z (зомби)
- 425 uid=0 Z (зомби)
- 521 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | /opt/bots/amigo/run_prod.py
- 529 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | -u | -m | amigo.main
+ 204 uid=10001 Z (зомби)
+ 420 uid=0 Z (зомби)
+ 517 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | /opt/bots/amigo/run_prod.py
+ 525 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | -u | -m | amigo.main
 .env: 640 root:10001 ключи: BOT_TOKEN HTTPS_PROXY OTHER_KEY  HTTPS_PROXY=http://127.0.0.1:18182
 8a411bca83ee /opt/bots/amigo/.env
 cfa02dc32124 /opt/bots/amigo/amigo/main.py
 1b7af019b5e8 /entrypoint.sh
 b97f670c8f27 /usr/local/sbin/amigo-backup.sh
 приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: нет
-17:18:08 # суммы файлов совпали с исходными: да
-17:18:08 # живой /ping: прежний процесс вернулся, старое реле
-< #44181 [22:18] pong от pid 529, сообщение ждало 1 с
+17:35:20 # суммы файлов совпали с исходными: да
+17:35:20 # живой /ping: прежний процесс вернулся, старое реле
+< #44211 [22:35] pong от pid 525, сообщение ждало 1 с
