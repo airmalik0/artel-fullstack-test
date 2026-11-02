@@ -1,0 +1,9 @@
+Запросы к https://api.ooni.io/api/v1/aggregation, выполнены 2026-11-02T10:59:23Z, всего запросов к API см. ниже.
+Окно: since=2026-10-03 until=2026-11-02 probe_cc=RU format=JSON
+by_test.json: axis_x=test_name
+by_asn_webconn.json: test_name=web_connectivity axis_x=probe_asn
+by_day_webconn.json: test_name=web_connectivity axis_x=measurement_start_day
+by_asn_openvpn.json: test_name=openvpn axis_x=probe_asn
+by_input_openvpn.json: test_name=openvpn axis_x=input
+by_asn_stun.json: test_name=stunreachability axis_x=probe_asn
+by_asn_signal.json: test_name=signal axis_x=probe_asn

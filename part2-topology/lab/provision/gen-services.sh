@@ -18,7 +18,7 @@ http {
   default_type application/octet-stream; access_log off; sendfile on; keepalive_timeout 30;
   server { listen 0.0.0.0:8080; root /srv/www; }
   server {
-    listen 10.10.2.10:443 ssl; listen 127.0.0.1:8443 ssl; http2 on;
+    listen 10.10.2.10:443 ssl; listen 127.0.0.1:8443 ssl; listen 0.0.0.0:8444 ssl; http2 on;
     ssl_certificate $D/cert.crt; ssl_certificate_key $D/cert.key;
     ssl_protocols TLSv1.2 TLSv1.3; root /srv/www;
   }
@@ -38,10 +38,13 @@ cat > xray-server.json <<J
   {"listen":"10.10.2.12","port":443,"protocol":"vless",
    "settings":{"clients":[{"id":"$UUID"}],"decryption":"none"},
    "streamSettings":{"network":"xhttp","xhttpSettings":{"path":"/x"},"security":"reality","realitySettings":$(rs)}},
+  {"listen":"10.10.2.19","port":443,"protocol":"vless",
+   "settings":{"clients":[{"id":"$UUID"}],"decryption":"none"},
+   "streamSettings":{"network":"raw","security":"reality","realitySettings":$(rs)}},
   {"listen":"10.10.2.13","port":8388,"protocol":"shadowsocks",
    "settings":{"method":"2022-blake3-aes-128-gcm","password":"$SSKEY","network":"tcp,udp"}}
  ],
- "outbounds":[{"protocol":"freedom","settings":{"finalRules":[{"action":"allow","network":"tcp","ip":["127.0.0.0/8"],"port":"8080"}]}}]}
+ "outbounds":[{"protocol":"freedom","settings":{"finalRules":[{"action":"allow","network":"tcp","ip":["127.0.0.0/8"],"port":"8080,8443"}]}}]}
 J
 
 hy() { # имя адрес obfs
@@ -119,18 +122,20 @@ O
 ovc udp udp 1194; ovc tcp tcp-client 443
 
 # Клиенты Xray
-xc() { # имя sni net flow
+xc() { # имя sni net flow [mux]
+  local mx=""; [ "${5:-}" = mux ] && mx='"mux":{"enabled":true,"concurrency":8},'
   local ss='"network":"raw"'; [ "$3" = xhttp ] && ss='"network":"xhttp","xhttpSettings":{"path":"/x"}'
   cat > cli/xray-$1.json <<J
 {"log":{"loglevel":"warning"},
  "inbounds":[{"listen":"127.0.0.1","port":10801,"protocol":"socks","settings":{"udp":false}}],
- "outbounds":[{"protocol":"vless","settings":{"vnext":[{"address":"@H@","port":443,"users":[{"id":"$UUID","encryption":"none","flow":"$4"}]}]},
+ "outbounds":[{$mx"protocol":"vless","settings":{"vnext":[{"address":"@H@","port":443,"users":[{"id":"$UUID","encryption":"none","flow":"$4"}]}]},
   "streamSettings":{$ss,"security":"reality","realitySettings":{"serverName":"$2","fingerprint":"chrome","publicKey":"$PUB","shortId":"$SID","spiderX":"/"}}}]}
 J
 }
 xc reality other.example raw xtls-rprx-vision
 xc reality-wl allowed.example raw xtls-rprx-vision
 xc xhttp other.example xhttp ""
+xc reality-mux other.example raw "" mux
 cat > cli/xray-ss2022.json <<J
 {"log":{"loglevel":"warning"},
  "inbounds":[{"listen":"127.0.0.1","port":10801,"protocol":"socks","settings":{"udp":false}}],

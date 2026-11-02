@@ -84,9 +84,9 @@ def ovpn_reset(p, tcp):
     return len(p) >= 14 and p[0] == 0x38
 
 class Flow:
-    __slots__ = ("buf", "done", "first", "c411", "cn", "sn", "decided", "qbuf")
+    __slots__ = ("buf", "done", "first", "firstpl", "c411", "cn", "sn", "decided", "qbuf")
     def __init__(self):
-        self.buf = b""; self.done = False; self.first = True
+        self.buf = b""; self.done = False; self.first = True; self.firstpl = b""
         self.c411 = 0; self.cn = 0; self.sn = 0; self.decided = False; self.qbuf = []
 
 class Model:
@@ -129,8 +129,9 @@ class Model:
         if not pl:
             return pkt.accept()
         if out and not fl.done:
+            if fl.first:
+                fl.first = False; fl.firstpl = pl    # S8: решение только по первому пакету данных
             fl.buf += pl
-            first_data = fl.first; fl.first = False
             sni = tls_sni(fl.buf)
             if sni is None and len(fl.buf) < 8192:
                 return pkt.accept()               # ждём остаток ClientHello
@@ -149,7 +150,7 @@ class Model:
                 elif tlsish or c["curtain"] == "all":
                     pkt.set_mark(MARK_CURTAIN)
                 return pkt.accept()
-            if c.get("fet") == "gfw" and is_hosting(key[2]) and fet_suspicious(fl.buf if first_data else pl):
+            if c.get("fet") == "gfw" and is_hosting(key[2]) and fet_suspicious(fl.firstpl):
                 nft(f"add element inet tspu resid3 {{ {key[0]} . {key[2]} . {key[3]} timeout {c['fet_resid']}s }}")
                 return self.freeze(pkt, key)
             if c.get("conn_limit") and tlsish and key[3] == 443:

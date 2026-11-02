@@ -3,25 +3,28 @@
 matrix.py --out results/matrix.csv --reps 7 [--scenarios a,b] [--protos a,b] [--append]"""
 import argparse, csv, os, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); LAB = os.path.dirname(HERE)
-PROTOS = "https-ok https-blocked https-wl wg awg ovpn-udp ovpn-tcp ss2022 reality reality-wl xhttp hy2 hy2-blk hy2-obfs".split()
+PROTOS = "https-ok https-blocked https-wl wg awg ovpn-udp ovpn-tcp ss2022 reality reality-wl reality-mux xhttp hy2 hy2-blk hy2-obfs".split()
 SCEN = "off pass sni_rst sni_drop quic_all quic_sni vpn_sig curtain_tls curtain_all fet_gfw fet_ru conn_limit wl_ip".split()
 RUHOST_TOO = {"curtain_tls", "curtain_all", "wl_ip"}   # там важен второй адрес вне множества хостингов
 PAR = {"off", "conn_limit"}
 FIELDS = ("ts scenario proto target rep tunnel_ok tunnel_up_s http_1k ttfb_s cold_ttfb_s bytes_1m complete_1m "
-          "thr_bytes thr_s thr_mbit wire_tx_bytes overhead_pct par_ok").split()
+          "wire_rx_1m thr_bytes thr_s thr_mbit wire_tx_bytes overhead_pct par_ok").split()
 
 def ssh(vm, cmd, timeout=90):
     r = subprocess.run([f"{LAB}/lab.sh", "ssh", vm, cmd], capture_output=True, text=True, timeout=timeout)
     return r.stdout
 
+def env(sc):
+    return "INNER=https" if sc == "fet_ru" else ""   # S7: рисунок HTTPS внутри туннеля
+
 def tx():
     return int(ssh("tspu", "cat /sys/class/net/lana/statistics/tx_bytes").strip())
 
 def one(sc, p, tgt, rep):
-    off = 100 if tgt == "ruhost" else 0
+    off = 200 if tgt == "ruhost" else 0
     row = dict.fromkeys(FIELDS, ""); row.update(ts=int(time.time()), scenario=sc, proto=p, target=tgt, rep=rep)
     ssh("tspu", "sudo /opt/lab/ctl.py reset")
-    out = ssh("client", f"sudo /opt/lab/rep.sh {p} {off}")
+    out = ssh("client", f"sudo {env(sc)} /opt/lab/rep.sh {p} {off}")
     d = {l.split(" ", 1)[0]: l.split(" ", 1)[1].split() for l in out.strip().splitlines() if " " in l}
     up = d.get("up", ["9", "0"])
     row["tunnel_ok"] = int(up[0] == "0"); row["tunnel_up_s"] = up[1]
@@ -33,9 +36,11 @@ def one(sc, p, tgt, rep):
             row["cold_ttfb_s"] = f"{float(up[1]) + float(d['k1'][3]):.4f}"
     if "m1" in d:
         row["bytes_1m"] = int(d["m1"][5]); row["complete_1m"] = int(int(d["m1"][5]) == 1048576)
+    if "wire" in d:
+        row["wire_rx_1m"] = d["wire"][0]
     if row["complete_1m"]:
         a = tx()
-        o = ssh("client", f"sudo /opt/lab/fetch.sh {p} 16m 30 {off}").split()
+        o = ssh("client", f"sudo {env(sc)} /opt/lab/fetch.sh {p} 16m 30 {off}").split()
         b = tx()
         if len(o) == 7:
             row["thr_bytes"] = int(o[5]); row["thr_s"] = o[4]

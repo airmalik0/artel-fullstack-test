@@ -5,6 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 XRAY_VER=v26.10.31
 HY_VER=app/v2.13.0
 AWG_TOOLS_VER=v3.1.20260812
+SB_VER=v1.14.4
 AWG_GO_REF=master
 apt_install() { apt-get update -qq; apt-get install -y -qq "$@" >/dev/null; }
 install_xray() {
@@ -15,6 +16,11 @@ install_xray() {
 install_hysteria() {
   curl -fsSL -o /usr/local/bin/hysteria "https://github.com/apernet/hysteria/releases/download/$HY_VER/hysteria-linux-arm64"
   chmod +x /usr/local/bin/hysteria
+}
+install_singbox() {
+  v=${SB_VER#v}
+  curl -fsSL -o /tmp/sb.tgz "https://github.com/SagerNet/sing-box/releases/download/$SB_VER/sing-box-$v-linux-arm64.tar.gz"
+  tar -xzf /tmp/sb.tgz -C /tmp; cp "/tmp/sing-box-$v-linux-arm64/sing-box" /usr/local/bin/
 }
 install_awg() {
   apt_install golang-go build-essential git make

@@ -14,8 +14,8 @@ stopall() {
 [ "$A" = down ] && { stopall; exit 0; }
 case "$P" in
   https-*) exit 0 ;;
-  reality|reality-wl|xhttp|ss2022)
-    case "$P" in reality|reality-wl) o=11;; xhttp) o=12;; ss2022) o=13;; esac
+  reality|reality-wl|reality-mux|xhttp|ss2022)
+    case "$P" in reality|reality-wl) o=11;; reality-mux) o=19;; xhttp) o=12;; ss2022) o=13;; esac
     sub "xray-$P.json" $o > /tmp/x.json; nohup xray run -c /tmp/x.json >/tmp/xray.log 2>&1 &
     waitport ;;
   hy2|hy2-blk|hy2-obfs)

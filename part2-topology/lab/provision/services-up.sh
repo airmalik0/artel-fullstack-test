@@ -3,17 +3,17 @@
 set -uo pipefail
 D=/etc/lab
 for i in lanb; do ethtool -K $i tso off gso off gro off lro off >/dev/null 2>&1; done
-for i in 10 11 12 13 14 15 16 17 18; do
+for i in 10 11 12 13 14 15 16 17 18 19; do
   ip addr add 10.10.2.$i/24 dev lanb 2>/dev/null
-  ip addr add 10.10.2.$((i+100))/24 dev lanb 2>/dev/null
+  ip addr add 10.10.2.$((i+200))/24 dev lanb 2>/dev/null
 done
-# Адреса .110-.118: те же сервисы, но вне множества «зарубежный хостинг» модели.
+# Адреса .210-.218: те же сервисы, но вне множества «зарубежный хостинг» модели.
 nft -f - <<N
 table ip labnat { }
 flush table ip labnat
 table ip labnat {
   chain pre { type nat hook prerouting priority -100;
-    ip daddr 10.10.2.110-10.10.2.118 dnat to ip daddr map { $(for i in 10 11 12 13 14 15 16 17 18; do printf '10.10.2.%d : 10.10.2.%d, ' $((i+100)) $i; done) }
+    ip daddr 10.10.2.210-10.10.2.219 dnat to ip daddr map { $(for i in 10 11 12 13 14 15 16 17 18 19; do printf '10.10.2.%d : 10.10.2.%d, ' $((i+200)) $i; done) }
   }
 }
 N
