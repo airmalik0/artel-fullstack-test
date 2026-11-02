@@ -1,0 +1,9 @@
+{
+ "measurement_uid": "20261101005043.359737_RU_openvpn_be5072f860bef407",
+ "input": "openvpn://oonivpn.corp/?address=37.218.243.98:1194&transport=udp",
+ "probe_asn": 50477,
+ "measurement_start_time": "2026-11-01T00:49:43Z",
+ "anomaly": true,
+ "failure": "unknown_failure: openvpn handshake error: tls timeout",
+ "handshake_failure": "unknown_failure: openvpn handshake error: tls timeout"
+}

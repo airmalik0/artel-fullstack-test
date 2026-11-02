@@ -1,0 +1,9 @@
+{
+ "measurement_uid": "20261101103351.972748_RU_openvpn_d158abf6e4534967",
+ "input": "openvpn://oonivpn.corp/?address=37.218.243.98:1194&transport=tcp",
+ "probe_asn": 48642,
+ "measurement_start_time": "2026-11-01T10:33:47Z",
+ "anomaly": true,
+ "failure": "host_unreachable",
+ "handshake_failure": "host_unreachable"
+}

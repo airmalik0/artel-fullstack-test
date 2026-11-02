@@ -7,3 +7,8 @@ by_asn_openvpn.json: test_name=openvpn axis_x=probe_asn
 by_input_openvpn.json: test_name=openvpn axis_x=input
 by_asn_stun.json: test_name=stunreachability axis_x=probe_asn
 by_asn_signal.json: test_name=signal axis_x=probe_asn
+control_openvpn_by_cc.json: test_name=openvpn axis_x=probe_cc (без probe_cc)
+control_DE_by_test.json: probe_cc=DE axis_x=test_name
+sample_openvpn_list.json: /api/v1/measurements?probe_cc=RU&test_name=openvpn&limit=3
+sample_openvpn_tcp.json, sample_openvpn_udp.json: выжимка /api/v1/measurement_meta?full=true по одному измерению
+Всего запросов к API OONI: 14.
