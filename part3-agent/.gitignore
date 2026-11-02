@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.agent-home/
+.cache/
+output/
+secrets/
+dist/
+*.tar.gz
+*.log

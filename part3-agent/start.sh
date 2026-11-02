@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Поднимает Claude Code на моделях DeepSeek. Все аргументы уходят в claude:
+#   ./start.sh                         интерактивная сессия
+#   ./start.sh -p "вопрос"             разовый запрос
+# Настройки и история живут в .agent-home, домашний ~/.claude не читается.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+REAL_HOME="$HOME"
+
+CLAUDE_BIN="$(command -v claude || true)"
+[ -n "$CLAUDE_BIN" ] || CLAUDE_BIN="$REAL_HOME/.local/bin/claude"
+[ -x "$CLAUDE_BIN" ] || { echo "claude не найден: tools/bootstrap-agent-host.sh" >&2; exit 1; }
+
+# Токен: из окружения или одной строкой из .env. Файл не исполняется и
+# остальные его значения в окружение не попадают.
+TOKEN="${DEEPSEEK_API_KEY:-}"
+if [ -z "$TOKEN" ] && [ -f .env ]; then
+  TOKEN="$(sed -n 's/^DEEPSEEK_API_KEY=//p' .env | tail -1)"
+fi
+[ -n "$TOKEN" ] || { echo "нет токена: заполни DEEPSEEK_API_KEY в .env" >&2; exit 1; }
+
+# Ключи Anthropic из окружения владельца не должны перебить DeepSeek.
+unset ANTHROPIC_API_KEY CLAUDE_CODE_OAUTH_TOKEN DEEPSEEK_API_KEY
+unset CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY
+
+export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$TOKEN"
+unset TOKEN
+
+# Эти переменные должны действовать с первой секунды, до чтения settings.json.
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1
+export CLAUDE_CODE_ATTRIBUTION_HEADER=0
+export DISABLE_AUTOUPDATER=1
+export DISABLE_TELEMETRY=1
+export DISABLE_ERROR_REPORTING=1
+
+# Изоляция: свой каталог настроек и свой HOME.
+AGENT_HOME="$ROOT/.agent-home"
+export CLAUDE_CONFIG_DIR="$AGENT_HOME"
+export HOME="$AGENT_HOME/home"
+mkdir -p "$HOME"
+chmod 700 "$AGENT_HOME"
+
+# Первый запуск без мастера и без вопроса о доверии папке.
+python3 - "$AGENT_HOME/.claude.json" "$ROOT" <<'PY'
+import json, os, sys
+path, root = sys.argv[1], sys.argv[2]
+state = {}
+if os.path.exists(path):
+    with open(path, encoding="utf-8") as fh:
+        state = json.load(fh)
+state["hasCompletedOnboarding"] = True
+state.setdefault("projects", {}).setdefault(root, {})["hasTrustDialogAccepted"] = True
+with open(path, "w", encoding="utf-8") as fh:
+    json.dump(state, fh)
+os.chmod(path, 0o600)
+PY
+
+# Песочнице bash запрещаем домашний каталог владельца целиком. Путь известен
+# только здесь, поэтому правило собирается при запуске. Если сама папка агента
+# лежит в домашнем каталоге, она открывается обратно, секреты внутри неё закрыты
+# в settings.json.
+RUNTIME_SETTINGS="$(python3 - "$REAL_HOME" "$ROOT" <<'PY'
+import json, sys
+home, root = sys.argv[1], sys.argv[2]
+print(json.dumps({"sandbox": {"filesystem": {"denyRead": [home], "allowRead": [root]}}}))
+PY
+)"
+
+exec "$CLAUDE_BIN" --settings "$RUNTIME_SETTINGS" "$@"
