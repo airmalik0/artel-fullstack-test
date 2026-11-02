@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Замер сторожа объёма. Срабатывание: заморозка включается посреди потока запросов 256 КиБ, клиент на selector со сторожем.
 Ложные срабатывания: сторож идёт по чистому каналу, по чистому под загрузкой и по узкому каналу.
-wdtest.py --out results/watchdog.csv --reps 10 [--clean-s 1800] [--only trip|clean]"""
+Вариант стоп: --limit 30 считает отказом только остановку потока, а не долгую докачку, строки с приставкой limit30_.
+wdtest.py --out results/watchdog.csv --reps 10 [--clean-s 1800] [--only trip|clean|limit] [--limit 30] [--append]"""
 import argparse, csv, os, re, statistics, time
 import failover as fo
 HEAD = ["case", "rep", "valid", "why_invalid", "fault", "duration_s", "probes", "probe_fail", "switches", "trail", "first_switch_s",
@@ -43,17 +44,25 @@ def clean(w, f, name, dur, before="", after="", load=False):
 def main():
     a = argparse.ArgumentParser(); a.add_argument("--out", required=True); a.add_argument("--reps", type=int, default=10)
     a.add_argument("--clean-s", type=int, default=1800); a.add_argument("--only", default=""); a.add_argument("--append", action="store_true")
+    a.add_argument("--limit", default="")
     o = a.parse_args()
     new = not (o.append and os.path.exists(o.out))
     f = open(o.out, "w" if new else "a", newline=""); w = csv.DictWriter(f, HEAD)
     if new: w.writeheader()
     fo.ssh("tspu", "sudo modprobe nfnetlink_queue; sudo /opt/lab/ctl.py net")
-    if o.only != "clean":
+    fo.WD_LIMIT = o.limit
+    if o.only == "limit":
+        for name, c in {"limit30_curtain_tls": TRIPS["wd_curtain_tls"], "limit30_ip_ban": ("watchdog", 5, "ip_ban", "1k", 40)}.items():
+            done = tries = 0
+            while done < o.reps and tries < 2 * o.reps:
+                tries += 1; done += trip(w, f, name, c, tries)
+        clean(w, f, "limit30_rate_400kbit", 180, "sudo tc qdisc replace dev lana root netem delay 20ms limit 20000 rate 400kbit", "sudo /opt/lab/ctl.py net")
+    if o.only not in ("clean", "limit"):
         for name, c in TRIPS.items():
             done = tries = 0
             while done < o.reps and tries < 2 * o.reps:
                 tries += 1; done += trip(w, f, name, c, tries)
-    if o.only != "trip":
+    if o.only not in ("trip", "limit"):
         NET = "sudo /opt/lab/ctl.py net"
         rate = "sudo tc qdisc replace dev lana root netem delay 20ms limit 20000 rate "
         clean(w, f, "clean", o.clean_s)

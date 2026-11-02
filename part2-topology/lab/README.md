@@ -26,6 +26,7 @@ run/matrix.py --out results/matrix.csv --append --reps 7 --scenarios pass
 run/matrix.py --out results/matrix.csv --append --reps 5 --scenarios sni_rst,sni_drop,quic_all,quic_sni,vpn_sig,curtain_tls,curtain_all,fet_gfw,fet_ru,conn_limit,wl_ip
 run/failover.py --out results/failover.csv --reps 10             # переключение клиента, около часа
 run/wdtest.py --out results/watchdog.csv --reps 10               # сторож объёма, около полутора часов
+run/wdtest.py --out results/watchdog.csv --append --reps 10 --only limit --limit 30  # сторож, отказ только при остановке потока
 ./lab.sh ssh tspu 'sudo /opt/lab/ctl.py set off; sudo /opt/tspu-venv/bin/python3 /opt/lab/probe.py 5' > results/probe.csv
 run/reality-compat.sh > results/reality-compat.csv               # sing-box против версий Xray
 run/fo-period.py > results/urltest-period.csv                    # настоящий период urltest из журналов прогона
@@ -74,7 +75,7 @@ run/summary.py results/matrix.csv --md
 
 Поля `results/failover.csv`: `first_ok_fallback_s` от начала отказа до конца первого успешного запроса через запасной путь, пусто, если за окно `window_s` переключения не было; `fallback_path` какой путь; `gap_s` разрыв между последним успешным запросом до переключения и этим запросом; `failed_after` сколько запросов не прошло; `load1` загрузка мака, стенд делит его с другими задачами.
 
-Поля `results/watchdog.csv`: `first_switch_s` от начала заморозки до первого переключения сторожем, `trail` цепочка путей, `probe_fail` неудачных проб из `probes`. Строки `clean*` и `rate_*` идут без отказа: любое переключение там ложное.
+Поля `results/watchdog.csv`: `first_switch_s` от начала заморозки до первого переключения сторожем, `trail` цепочка путей, `probe_fail` неудачных проб из `probes`. Строки `clean*` и `rate_*` идут без отказа: любое переключение там ложное. Строки `limit30_*` сняты со сторожем, у которого предел докачки 30 с вместо 4 с.
 
 ## Метрики
 

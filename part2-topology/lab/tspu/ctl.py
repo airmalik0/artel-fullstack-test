@@ -62,6 +62,7 @@ cmd = sys.argv[1]
 if cmd == "net":
     for i in ("lana", "lanb"):
         sh("ethtool", "-K", i, "tso", "off", "gso", "off", "gro", "off", "lro", "off")
+        sh("tc", "qdisc", "del", "dev", i, "root")  # replace сохранил бы прежний rate
         sh("tc", "qdisc", "replace", "dev", i, "root", "netem", "delay", "20ms", "limit", "20000")
     sh("sysctl", "-q", "net.ipv4.ip_forward=1", "net.netfilter.nf_conntrack_acct=1", "net.netfilter.nf_conntrack_tcp_be_liberal=1")
 elif cmd == "set":

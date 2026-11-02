@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Сторож объёма: каждые INTERVAL секунд качает через текущий выход объект больше порога «занавеса»
-и переключает selector sing-box на следующий выход, если объект не докачался. watchdog.py <интервал> <объект>
+и переключает selector sing-box на следующий выход, если объект не докачался. watchdog.py <интервал> <объект> [предел_пробы_с]
+Предел 4 с по умолчанию считает узкий канал отказом. С большим пределом отказ это только остановка потока.
 Строка на пробу: время путь байт секунд ok|FAIL; строка на переключение: время switch путь."""
 import json, subprocess, sys, time, urllib.request
 INTERVAL, OBJ = float(sys.argv[1]), sys.argv[2]
+LIMIT = sys.argv[3] if len(sys.argv) > 3 else "4"
 ORDER = ["reality", "hy2s", "exit2", "entry4"]
 def api(m, path, body=None):
     r = urllib.request.Request("http://127.0.0.1:9090" + path, method=m, data=body and json.dumps(body).encode())
@@ -12,7 +14,7 @@ cur = 0
 while True:
     time.sleep(INTERVAL)
     t = time.time()
-    c = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{size_download}", "--max-time", "4", "--speed-time", "2", "--speed-limit", "1024",
+    c = subprocess.run(["curl", "-s", "-o", "/dev/null", "-w", "%{size_download}", "--connect-timeout", "4", "--max-time", LIMIT, "--speed-time", "2", "--speed-limit", "1024",
                         "--socks5-hostname", "127.0.0.1:10801", f"http://127.0.0.1:8080/{OBJ}"], capture_output=True, text=True)
     want = {"256k": 262144, "1k": 1024}[OBJ]
     ok = c.stdout.strip() == str(want)

@@ -22,7 +22,7 @@ print(f"\nстрок всего {sum(map(len, g.values()))}, недействи�
       f"загрузка мака {min(float(r['load1']) for v in g.values() for r in v):.0f}..{max(float(r['load1']) for v in g.values() for r in v):.0f}")
 w = list(csv.DictReader(open(sys.argv[2])))
 print("\n| случай | n | первое переключение, с | до первого успеха 256 КиБ, с | цепочка путей |\n|---|---|---|---|---|")
-for k in ("wd_curtain_tls", "wd_curtain_all"):
+for k in ("wd_curtain_tls", "wd_curtain_all", "limit30_curtain_tls", "limit30_ip_ban"):
     ok = [r for r in w if r["case"] == k and r["valid"] == "1"]
     if ok:
         tr = "; ".join(f"{p} {n}" for p, n in collections.Counter(r["trail"] for r in ok).most_common())
@@ -30,5 +30,5 @@ for k in ("wd_curtain_tls", "wd_curtain_all"):
         print(f"| {k} | {len(ok)} | {fmt(sw) if sw else 'нет'} | {fmt(fb) if fb else 'нет'} | {tr} |")
 print("\n| канал | минут | проб | неудачных | переключений | проба, медиана, с | проба, макс, с |\n|---|---|---|---|---|---|---|")
 for r in w:
-    if r["case"].startswith(("clean", "rate")):
+    if r["case"].startswith(("clean", "rate", "limit30_rate")):
         print(f"| {r['case']} | {int(r['duration_s']) / 60:.0f} | {r['probes']} | {r['probe_fail']} | {r['switches']} | {r['probe_med_s']} | {r['probe_max_s']} |")

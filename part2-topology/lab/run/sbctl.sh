@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sbctl.sh start urltest <интервал> <tolerance> | start selector <интервал_сторожа> <объект> | stop.
+# sbctl.sh start urltest <интервал> <tolerance> | start selector <интервал_сторожа> <объект> [предел_пробы] | stop.
 # Держит pid sing-box, локальных Xray и сторожа в файлах. Журналы: /tmp/sb.log, /tmp/wd.log.
 stop() {
   for f in /tmp/wd.pid /tmp/sb.pid /tmp/xr1.pid /tmp/xr4.pid; do [ -f "$f" ] && { kill -9 "$(cat "$f")" 2>/dev/null; rm -f "$f"; }; done
@@ -18,7 +18,7 @@ case "$1" in
     nohup sing-box run -c /tmp/sb.json >/tmp/sb.out 2>&1 </dev/null &
     echo $! > /tmp/sb.pid
     if [ "$2" = selector ]; then
-      sleep 1; nohup python3 /opt/lab/watchdog.py "$3" "$4" >/tmp/wd.log 2>&1 </dev/null &
+      sleep 1; nohup python3 /opt/lab/watchdog.py "$3" "$4" ${5:-} >/tmp/wd.log 2>&1 </dev/null &
       echo $! > /tmp/wd.pid
     fi ;;
 esac

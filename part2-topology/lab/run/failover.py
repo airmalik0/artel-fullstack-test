@@ -10,6 +10,7 @@ WORK = os.environ.get("LAB_WORK", os.path.expanduser("~/Projects/artel-test-work
 RAW = os.path.expanduser("~/Projects/artel-test-work/part2/raw/fo")
 PORT = {"client": 2221, "tspu": 2222, "server": 2223}
 PRIMARY = "reality"
+WD_LIMIT = ""  # предел пробы сторожа, пусто значит умолчание
 LAST = {}  # момент отказа и сдвиг часов последнего прогона, для журнала сторожа
 def sshv(vm):
     return ["ssh", "-i", f"{WORK}/lab_ed25519", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null",
@@ -85,7 +86,7 @@ def start_client(mech, interval, tol=300):
     if mech == "urltest":
         ssh("client", f"sudo /opt/lab/sbctl.sh start urltest {interval}s {tol}")
     else:
-        ssh("client", f"sudo /opt/lab/sbctl.sh start selector {interval} 256k")
+        ssh("client", f"sudo /opt/lab/sbctl.sh start selector {interval} 256k {WD_LIMIT}")
 def run_once(name, c, rep, tol=300):
     mech, interval, fault, obj, win = c
     reset(); start_client(mech, interval, tol)

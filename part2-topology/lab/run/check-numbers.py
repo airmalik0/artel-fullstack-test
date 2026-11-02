@@ -45,6 +45,29 @@ has("0 из 3 против Xray 26.9.9 и 26.10.31, 3 из 3 против 26.6.2
 fo = list(csv.DictReader(open(f"{R}/failover.csv")))
 has(f"Таких строк {sum(r['valid'] != '1' for r in fo)} из {len(fo)}", "failover.csv")
 la = [float(r["load1"]) for r in fo]; has(f"средняя нагрузка от {min(la):.0f} до {max(la):.0f}", "failover.csv")
+# сторож и разделы 5, 8.3, 9
+cf = lambda v: f"{st.median(v):.1f} [{min(v):.1f}..{max(v):.1f}]".replace(".", ",").replace(",,", "..")
+wd = list(csv.DictReader(open(f"{R}/watchdog.csv")))
+val = lambda rows, k, f: [float(r[f]) for r in rows if r["case"] == k and r.get("valid") == "1" and r[f] != ""]
+for k, f, where in (("urltest15_ip_ban", fo, "`urltest` 15 с: "), ("urltest15_model_sni", fo, "`urltest` 15 с: "), ("urltest15_service_stop", fo, "`urltest` 15 с: "),
+                    ("watchdog5_ip_ban", fo, "сторож "), ("watchdog5_model_sni", fo, "сторож "), ("watchdog5_service_stop", fo, "сторож ")):
+    has(where + cf(val(f, k, "first_ok_fallback_s")) + " с", "failover.csv")
+has("через " + cf(val(wd, "wd_curtain_tls", "first_ok_fallback_s")) + " с", "watchdog.csv")
+has("с пределом докачки 30 с " + cf(val(wd, "limit30_curtain_tls", "first_ok_fallback_s")) + " с", "watchdog.csv")
+has(cf(val(wd, "wd_curtain_all", "first_ok_fallback_s")) + " с", "watchdog.csv")
+row = {r["case"]: r for r in wd}
+for k, t in (("clean", "0 из {p} за 30 минут"), ("clean_load16m", "под постоянной загрузкой 0 из {p}"), ("rate_1mbit", "на 1 Мбит/с 0 из {p}"), ("limit30_rate_400kbit", "На 400 кбит/с 0 из {p}")):
+    if row[k]["switches"] != "0": bad += 1; print("РАСХОЖДЕНИЕ ложные", k)
+    has(t.format(p=row[k]["probes"]), "watchdog.csv")
+has(f"{row['rate_400kbit']['probes']} проб, {row['rate_400kbit']['switches']} ложных переключений", "watchdog.csv")
+med = lambda k: st.median(val(wd, k, "first_ok_fallback_s"))
+has(f"Цена около {med('limit30_curtain_tls') - med('wd_curtain_tls'):.0f} с на «занавесе»", "watchdog.csv")
+cur = [r for r in fo if r["case"] == "urltest15_model_curtain" and r["valid"] == "1"]
+if any(r["first_ok_fallback_s"] for r in cur) or len(cur) != 10: bad += 1; print("РАСХОЖДЕНИЕ urltest на занавесе")
+ru = collections.Counter((r["proto"], r["target"]) for r in csv.DictReader(open(f"{R}/ruhost-hy2.csv")) if r["complete_1m"] == "1")
+has(f"на этом адресе {ru[('hy2', 'ruhost')]} из 20, на обычном адресе {ru[('hy2', 'foreign')]} из 5, у `hy2-obfs` вне хостинга {ru[('hy2-obfs', 'ruhost')]} из 20", "ruhost-hy2.csv")
+t = {l.split()[0]: int(l.split("s=")[1]) for l in open(os.path.expanduser("~/Projects/artel-test-work/part2/rebuild.times")) if " rc=" in l}
+has(f"на новых дисках после всех правок: {sum(t.values())} с, из них подъём ВМ {t['up']} с, установка {t['provision']} с, конфиги {t['syncgen']} с, проба {t['proof']} с", "rebuild.times")
 # активное зондирование
 g = collections.OrderedDict()
 for r in csv.DictReader(open(f"{R}/probe.csv")):
