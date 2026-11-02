@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Клиентский sing-box: Reality на выходе A, Hysteria2 с Salamander на A и на B, порядок как пути 1, 2, 3.
-sb-config.py urltest <интервал> <tolerance> <url> | selector  -> /tmp/sb.json, /tmp/xr1.json, /tmp/xr4.json.
+sb-config.py urltest <интервал> <tolerance> <url> [native] | selector  -> /tmp/sb.json, /tmp/xr1.json, /tmp/xr4.json.
 Clash API 127.0.0.1:9090 в обоих режимах.
 Reality идёт через локальный Xray по SOCKS: sing-box 1.14.4 вырезает X25519MLKEM768 из ClientHello,
 а Xray с 26.9.9 такой ClientHello отвергает (results/reality-compat.csv). Группа и переключение остаются в sing-box.
@@ -22,6 +22,12 @@ def hy(tag, addr):
 def socks(tag, port):
     return {"type": "socks", "tag": tag, "server": "127.0.0.1", "server_port": port, "version": "5"}
 out = [socks("reality", 10811), hy("hy2s", "10.10.2.11"), hy("exit2", "10.10.2.18")]
+if sys.argv[-1] == "native":  # Reality прямо из sing-box, только для run/reality-compat.sh
+    x = json.load(open("/etc/lab/xray-reality.json"))["outbounds"][0]
+    u, r = x["settings"]["vnext"][0]["users"][0], x["streamSettings"]["realitySettings"]
+    out[0] = {"type": "vless", "tag": "reality", "server": "10.10.2.11", "server_port": 443, "uuid": u["id"], "flow": "xtls-rprx-vision",
+              "tls": {"enabled": True, "server_name": "blocked.example", "utls": {"enabled": True, "fingerprint": "chrome"},
+                      "reality": {"enabled": True, "public_key": r["publicKey"], "short_id": r["shortId"]}}}
 names = ["reality", "hy2s", "exit2"]
 if sys.argv[1] == "urltest":
     out.append({"type": "urltest", "tag": "auto", "outbounds": names, "interval": sys.argv[2], "tolerance": int(sys.argv[3]),

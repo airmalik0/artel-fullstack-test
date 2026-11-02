@@ -3,6 +3,7 @@
 # Причина отказа на новых версиях: XTLS/REALITY 8cdf7bf9 отвергает ClientHello без X25519MLKEM768,
 # а sing-box вырезает этот share из ClientHello (common/tls/reality_client.go).
 cd "$(dirname "$0")/.."
+./lab.sh ssh client 'sudo python3 /opt/lab/sb-config.py urltest 15s 300 http://127.0.0.1:8080/1k native; sudo chmod a+r /tmp/sb.json'
 echo "xray_server,client,rep,result"
 for v in v26.6.27 v26.9.9 v26.10.31; do
   ./lab.sh ssh server "bin=/tmp/x-$v/xray; [ $v = v26.10.31 ] && bin=/usr/local/bin/xray
