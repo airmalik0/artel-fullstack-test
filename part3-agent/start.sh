@@ -24,6 +24,8 @@ fi
 # Ключи Anthropic из окружения владельца не должны перебить DeepSeek.
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN CLAUDE_CODE_OAUTH_TOKEN DEEPSEEK_API_KEY
 unset CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX CLAUDE_CODE_USE_FOUNDRY
+# Подпроцессы агента не должны знать сокеты вокруг сессии: tmux, ssh-agent, dbus.
+unset TMUX TMUX_PANE SSH_AUTH_SOCK DBUS_SESSION_BUS_ADDRESS
 
 # WIRE_TAP_PORT включает просмотр запросов через tools/wire-tap.py.
 export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
@@ -32,15 +34,12 @@ export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
 # Эти переменные должны действовать с первой секунды, до чтения settings.json.
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
-export DISABLE_AUTOUPDATER=1
-export DISABLE_TELEMETRY=1
-export DISABLE_ERROR_REPORTING=1
 
 # Изоляция: свой каталог настроек и свой HOME.
 AGENT_HOME="$ROOT/.agent-home"
 export CLAUDE_CONFIG_DIR="$AGENT_HOME"
 export HOME="$AGENT_HOME/home"
-mkdir -p "$HOME"
+mkdir -p "$HOME" "$ROOT/.cache" "$ROOT/output" "$ROOT/secrets"
 chmod 700 "$AGENT_HOME"
 
 # Токена нет в окружении claude, значит его нет и у bash агента. Claude Code берёт
@@ -51,7 +50,7 @@ TOKEN_FILE="$AGENT_HOME/api-token"
 unset TOKEN
 
 # Первый запуск без мастера и без вопроса о доверии папке.
-python3 - "$AGENT_HOME/.claude.json" "$ROOT" <<'PY'
+python3 -I - "$AGENT_HOME/.claude.json" "$ROOT" <<'PY'
 import json, os, sys
 path, root = sys.argv[1], sys.argv[2]
 state = {}
@@ -69,20 +68,19 @@ PY
 # только здесь, поэтому правило собирается при запуске. Если сама папка агента
 # лежит в домашнем каталоге, она открывается обратно, секреты внутри неё закрыты
 # в settings.json.
-RUNTIME_SETTINGS="$(python3 - "$REAL_HOME" "$ROOT" "$TOKEN_FILE" <<'PY'
+RUNTIME_SETTINGS="$(python3 -I - "$REAL_HOME" "$ROOT" "$TOKEN_FILE" <<'PY'
 import json, os, shlex, sys
 home, root, token_file = sys.argv[1:4]
 settings = {
     "apiKeyHelper": "cat " + shlex.quote(token_file),
-    # Bash агента не пишет в код папки, иначе он подменил бы скрипт из excludedCommands
-    # и запустил свой код вне песочницы. Корень целиком закрыть нельзя: туда песочница
-    # кладёт свои пустые точки монтирования.
+    # Bash агента не пишет ни во что, что уже лежит в папке, иначе он подменил бы скрипт
+    # из excludedCommands. Корень целиком закрыть нельзя: туда песочница кладёт пустые
+    # точки монтирования. Новые файлы в корне безвредны: скрипты не берут их из cwd.
     "sandbox": {"filesystem": {
         "denyRead": [home],
         "allowRead": [root],
-        "denyWrite": [os.path.join(root, p) for p in (
-            ".claude", "scripts", "tools", "evidence", "output", "secrets", ".agent-home", ".env",
-            "start.sh", "deploy.sh", "build-archive.sh", "CLAUDE.md", "README.md")],
+        "denyWrite": sorted(os.path.join(root, name) for name in set(os.listdir(root)) | {
+            ".env", ".cache", ".agent-home", "output", "secrets", "CLAUDE.local.md"}),
     }},
 }
 settings.update(json.loads(os.environ.get("AGENT_EXTRA_SETTINGS") or "{}"))

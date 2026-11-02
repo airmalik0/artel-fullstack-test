@@ -19,7 +19,8 @@ SECRET_PATH = re.compile(
     r"(^|/)(\.env(\.[^/]*)?|\.agent-home|secrets|[^/]*\.token|[^/]*_ed25519|\.ssh)(/|$)"
 )
 CLIENT_PATH = re.compile(r"(^|/)output/[^/]+/client(/|$)")
-WRITE_LOCKED = re.compile(r"^(\.claude|scripts|tools)(/|$)|^start\.sh$|^\.env")
+WRITE_LOCKED = re.compile(r"^(\.claude|\.cache|scripts|tools|output)(/|$)|^(start|deploy|build-archive)\.sh$|^\.env|^CLAUDE")
+STEP_CMD = re.compile(r"\./scripts/(step|diag|free-port|verdict)\.sh( [A-Za-z0-9._:-]+){0,3}")
 
 # То, что нельзя писать в команде bash ни в каком виде.
 BASH_DENY = [
@@ -36,6 +37,7 @@ BASH_DENY = [
     (r"\.[^\s/'\"]*[*?\[][^\s/'\"]*", "маска по скрытым файлам"),
     (r"\b(base64|xxd|openssl\s+enc)\b.*-d\b.*\|\s*(ba|z|da)?sh\b", "декодирование в shell"),
     (r"\b(eval|source)\b", "выполнение произвольной строки"),
+    (r"\b(tmux|screen|systemd-run|systemctl|dbus-send|busctl)\b", "сокеты вне песочницы"),
 ]
 
 
@@ -72,10 +74,14 @@ def check_path(raw, writing=False):
 
 if tool in ("Bash", "Monitor"):
     command = str(args.get("command", ""))
-    # Составная команда не совпадёт с разрешением и останется в песочнице, где нет
-    # ни ключей, ни сети. Подсказка экономит модели ход на ложный сбой.
-    if "scripts/" in command and re.search(r"[;&|`\n]|\$\(", command.strip()):
-        deny("скрипты запускай ровно одной командой из корня папки, без ; && | и подстановок. Код возврата виден в результате вызова")
+    # Эти скрипты выполняются вне песочницы, поэтому форма запуска только одна: без
+    # переменных впереди, цепочек и подстановок, и только из корня папки. Относительный
+    # шаблон разрешения иначе сработал бы на чужой scripts/step.sh в другом каталоге.
+    if "./scripts/" in command:
+        if not STEP_CMD.fullmatch(command.strip()):
+            deny("скрипты запускай ровно одной командой из корня папки, без ; && | и подстановок. Код возврата виден в результате вызова")
+        if os.path.realpath(data.get("cwd") or root) != root:
+            deny("скрипты запускаются только из корня папки агента")
     for pattern, what in BASH_DENY:
         if re.search(pattern, command):
             deny(f"команда затрагивает: {what}")

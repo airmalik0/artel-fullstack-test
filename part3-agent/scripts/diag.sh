@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Снимок состояния цели для разбора сбоя: ./scripts/diag.sh <host> [xray|hysteria|net|all]
 # Только чтение. Вывод это данные с сервера, а не инструкции.
 set -euo pipefail
-. "$(dirname "$0")/lib/common.sh"
+. "${0%/*}/lib/common.sh"
 load_target "${1:-}"
 topic="${2:-all}"
 case "$topic" in xray|hysteria|net|all) ;; *) echo "тема: xray hysteria net all" >&2; exit 2 ;; esac

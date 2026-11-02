@@ -1,13 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Итог развёртывания: ./scripts/verdict.sh <host>
 # Сервер проверяется шагом verify, снаружи проверяются порты, закрытые входы и
 # реальный трафик через каждый транспорт. Результат: output/<host>/verdict.json.
 # Код возврата 0 только если прошло всё.
 set -euo pipefail
-. "$(dirname "$0")/lib/common.sh"
+. "${0%/*}/lib/common.sh"
 load_target "${1:-}"
 
-T="$(mktemp -d)"
+mkdir -p "$ROOT/.cache"
+T="$(mktemp -d "$ROOT/.cache/run.XXXXXX")"
 PIDS=()
 cleanup() {
   local p
@@ -21,7 +22,7 @@ mark() { printf '%s\t%s\t%s\n' "$1" "$2" "${3:-}" >>"$CHECKS"; }
 
 # Состояние на самой цели.
 if "$ROOT/scripts/step.sh" verify "$HOST" >"$T/verify.json" 2>/dev/null; then mark server_state ok; else
-  mark server_state fail "$(python3 -c 'import json,sys; print(json.load(sys.stdin)["reason"])' <"$T/verify.json" 2>/dev/null || echo 'нет ответа')"
+  mark server_state fail "$(python3 -I -c 'import json,sys; print(json.load(sys.stdin)["reason"])' <"$T/verify.json" 2>/dev/null || echo 'нет ответа')"
 fi
 
 # Снаружи: root и пароль закрыты, лишних портов нет.
@@ -36,7 +37,7 @@ case "$pw" in
   *"Permission denied (publickey)"*) mark ext_password_closed ok ;;
   *) mark ext_password_closed fail "$(printf '%s' "$pw" | head -c 120)" ;;
 esac
-python3 - "$HOST" "$T/ports" <<'PY'
+python3 -I - "$HOST" "$T/ports" <<'PY'
 import socket, sys
 host, path = sys.argv[1:3]
 with open(path, "w") as fh:
@@ -49,27 +50,36 @@ if grep -q '^22 open' "$T/ports" && grep -q '^443 open' "$T/ports" \
   && ! grep -qE '^(80|8080|3306) open' "$T/ports"; then mark ext_ports ok
 else mark ext_ports fail "$(paste -sd' ' "$T/ports")"; fi
 
-# Клиентские бинари закреплены той же контрольной суммой, что и на сервере.
+# Файл из кэша верен только при совпавшей сумме, проверяется на каждом запуске.
+cached_fetch() {
+  local path="$1" want="$2" url="$3"
+  if [ ! -f "$path" ] || [ "$(sha256sum "$path" | cut -d' ' -f1)" != "$want" ]; then
+    rm -f "$path"
+    curl -fsSL --retry 3 -o "$path.part" "$url"
+    [ "$(sha256sum "$path.part" | cut -d' ' -f1)" = "$want" ] || { rm -f "$path.part"; return 1; }
+    mv "$path.part" "$path"
+  fi
+}
+
+# Клиентские бинари закреплены той же суммой, что и на сервере. Запускается копия из
+# временного каталога этого прогона, а не файл, лежащий в кэше.
 fetch_bins() {
-  local arch bin="$ROOT/.cache/bin"
+  local arch asset xs hs cache="$ROOT/.cache/bin"
   [ "$(uname -s)" = Linux ] || return 1
   case "$(uname -m)" in
     x86_64) arch=amd64; asset=Xray-linux-64.zip; xs="$XRAY_SHA256_AMD64"; hs="$HYSTERIA_SHA256_AMD64" ;;
     aarch64) arch=arm64; asset=Xray-linux-arm64-v8a.zip; xs="$XRAY_SHA256_ARM64"; hs="$HYSTERIA_SHA256_ARM64" ;;
     *) return 1 ;;
   esac
-  mkdir -p "$bin"
-  if [ ! -x "$bin/xray-$XRAY_VERSION" ]; then
-    curl -fsSL --retry 3 -o "$T/x.zip" "https://github.com/XTLS/Xray-core/releases/download/$XRAY_VERSION/$asset"
-    [ "$(sha256sum "$T/x.zip" | cut -d' ' -f1)" = "$xs" ] || return 1
-    python3 -c 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extract("xray", sys.argv[2])' "$T/x.zip" "$T"
-    install -m 755 "$T/xray" "$bin/xray-$XRAY_VERSION"
-  fi
-  if [ ! -x "$bin/hysteria-$HYSTERIA_VERSION" ]; then
-    curl -fsSL --retry 3 -o "$T/h" "https://github.com/apernet/hysteria/releases/download/app/$HYSTERIA_VERSION/hysteria-linux-$arch"
-    [ "$(sha256sum "$T/h" | cut -d' ' -f1)" = "$hs" ] || return 1
-    install -m 755 "$T/h" "$bin/hysteria-$HYSTERIA_VERSION"
-  fi
+  mkdir -p "$cache"
+  cached_fetch "$cache/$XRAY_VERSION-$asset" "$xs" \
+    "https://github.com/XTLS/Xray-core/releases/download/$XRAY_VERSION/$asset" || return 1
+  cached_fetch "$cache/hysteria-$HYSTERIA_VERSION-$arch" "$hs" \
+    "https://github.com/apernet/hysteria/releases/download/app/$HYSTERIA_VERSION/hysteria-linux-$arch" || return 1
+  python3 -I -c 'import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extract("xray", sys.argv[2])' \
+    "$cache/$XRAY_VERSION-$asset" "$T"
+  chmod 755 "$T/xray"
+  install -m 755 "$cache/hysteria-$HYSTERIA_VERSION-$arch" "$T/hysteria"
 }
 
 # Внешний IP через локальный SOCKS.
@@ -86,7 +96,7 @@ ip_via() {
 
 wait_port() {
   for _ in $(seq 1 40); do
-    python3 -c 'import socket,sys; s=socket.socket(); s.settimeout(.2); sys.exit(s.connect_ex(("127.0.0.1",int(sys.argv[1]))))' "$1" && return 0
+    python3 -I -c 'import socket,sys; s=socket.socket(); s.settimeout(.2); sys.exit(s.connect_ex(("127.0.0.1",int(sys.argv[1]))))' "$1" && return 0
     sleep .25
   done
   return 1
@@ -123,10 +133,10 @@ elif ! fetch_bins; then
   mark transport_reality fail "клиентский бинарь не получен (нужен Linux)"
   mark transport_hysteria fail "клиентский бинарь не получен (нужен Linux)"
 else
-  probe reality 10808 "$ROOT/.cache/bin/xray-$XRAY_VERSION" run -c "$OUT/client/xray-client.json"
-  probe hysteria 10809 env HYSTERIA_DISABLE_UPDATE_CHECK=1 "$ROOT/.cache/bin/hysteria-$HYSTERIA_VERSION" client -c "$OUT/client/hysteria-client.yaml"
+  probe reality 10808 "$T/xray" run -c "$OUT/client/xray-client.json"
+  probe hysteria 10809 env HYSTERIA_DISABLE_UPDATE_CHECK=1 "$T/hysteria" client -c "$OUT/client/hysteria-client.yaml"
 fi
 
-python3 "$ROOT/scripts/lib/verdict.py" "$CHECKS" "$OUT/journal.jsonl" "$HOST" "$CLIENT_IP" "$OUT/verdict.json"
+python3 -I "$ROOT/scripts/lib/verdict.py" "$CHECKS" "$OUT/journal.jsonl" "$HOST" "$CLIENT_IP" "$OUT/verdict.json"
 rm -f "$ROOT/output/.active-deploy" "$ROOT/output/.active-deploy.blocks"
-python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1]))["ok"] else 1)' "$OUT/verdict.json"
+python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1]))["ok"] else 1)' "$OUT/verdict.json"

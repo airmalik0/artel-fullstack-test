@@ -23,7 +23,7 @@ check() {
 }
 
 finish() {
-  python3 - "$_D" "$STEP" <<'PY'
+  python3 -I - "$_D" "$STEP" <<'PY'
 import json, sys
 d, step = sys.argv[1], sys.argv[2]
 read = lambda n: [l.rstrip("\n") for l in open(f"{d}/{n}", encoding="utf-8") if l.strip()]

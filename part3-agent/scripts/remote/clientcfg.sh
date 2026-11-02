@@ -7,7 +7,7 @@ UUID="$(sed -n 's/^UUID=//p' /etc/xray/reality.env)"
 SHORT_ID="$(sed -n 's/^SHORT_ID=//p' /etc/xray/reality.env)"
 PASSWORD="$(sed -n 's/^PASSWORD=//p' /etc/hysteria/auth.env)"
 PIN="$(openssl x509 -in /etc/hysteria/server.crt -noout -fingerprint -sha256 | cut -d= -f2)"
-python3 - "$PUBLIC_KEY" "$UUID" "$SHORT_ID" "$PASSWORD" "$PIN" <<'PY'
+python3 -I - "$PUBLIC_KEY" "$UUID" "$SHORT_ID" "$PASSWORD" "$PIN" <<'PY'
 import base64, json, sys
 keys = ("public_key", "uuid", "short_id", "password", "pin")
 blob = json.dumps(dict(zip(keys, sys.argv[1:6]))).encode()

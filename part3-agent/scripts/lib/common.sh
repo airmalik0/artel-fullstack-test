@@ -2,7 +2,17 @@
 # Общее для локальных скриптов: настройки, ssh, запуск шага на цели.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT="$(cd "${BASH_SOURCE[0]%/*}/../.." && pwd)"
+
+# Эти скрипты выполняются вне песочницы, а в корень папки bash агента писать может.
+# Поэтому ничего не берём из cwd и окружения: фиксированный PATH, каталог без записи,
+# python только с -I, чтобы рядом не подложили модуль.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/homebrew/bin
+unset PYTHONPATH PYTHONHOME PYTHONSTARTUP PYTHONINSPECT PYTHONUSERBASE BASH_ENV ENV CDPATH
+unset LD_PRELOAD LD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
+export PYTHONSAFEPATH=1
+cd "$ROOT/scripts"
+
 # shellcheck disable=SC1091
 . "$ROOT/scripts/lib/versions.env"
 

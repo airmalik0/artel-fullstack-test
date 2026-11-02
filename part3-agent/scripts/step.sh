@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Один шаг развёртывания: ./scripts/step.sh <шаг> <host>
 # Печатает одну строку JSON, код возврата 0 только при ok: true.
 set -euo pipefail
-. "$(dirname "$0")/lib/common.sh"
+. "${0%/*}/lib/common.sh"
 
 step="${1:-}"
 case "$step" in
@@ -23,14 +23,14 @@ COMMON_ENV=(
 emit() {
   local json="$1"
   printf '%s\n' "$json" >"$OUT/steps/$step.json"
-  python3 "$ROOT/scripts/lib/journal.py" "$OUT/journal.jsonl" <<<"$json"
+  python3 -I "$ROOT/scripts/lib/journal.py" "$OUT/journal.jsonl" <<<"$json"
   printf '%s\n' "$json"
-  [ "$(python3 -c 'import json,sys; print(json.load(sys.stdin)["ok"])' <<<"$json")" = True ]
+  [ "$(python3 -I -c 'import json,sys; print(json.load(sys.stdin)["ok"])' <<<"$json")" = True ]
   exit $?
 }
 
 failure() {
-  emit "$(python3 -c 'import json,sys; print(json.dumps({"step":sys.argv[1],"ok":False,"changed":[],"checks":{},"facts":{},"reason":sys.argv[2]},ensure_ascii=False))' "$step" "$1")"
+  emit "$(python3 -I -c 'import json,sys; print(json.dumps({"step":sys.argv[1],"ok":False,"changed":[],"checks":{},"facts":{},"reason":sys.argv[2]},ensure_ascii=False))' "$step" "$1")"
 }
 
 # Запускает сценарий и кладёт результат в RESULT, секрет в SECRET. Журнал только в файл.
@@ -60,13 +60,13 @@ case "$step" in
     PUBKEY="$(ssh-keygen -y -f "$KEY")"
     collect harden PHASE=user "PUBKEY=$PUBKEY"
     FIRST="$RESULT"
-    python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin)["ok"] else 1)' <<<"$FIRST" || emit "$FIRST"
+    python3 -I -c 'import json,sys; sys.exit(0 if json.load(sys.stdin)["ok"] else 1)' <<<"$FIRST" || emit "$FIRST"
     # Root закрываем только после того, как новый вход проверен извне.
     ssh -n "${SSH_OPTS[@]}" "$DEPLOY_USER@$HOST" 'sudo -n true' \
       || failure "вход под $DEPLOY_USER не работает, root не закрыт"
     LOGIN="$DEPLOY_USER"; SUDO="sudo -n"
     collect harden PHASE=lock "PUBKEY=$PUBKEY"
-    emit "$(python3 "$ROOT/scripts/lib/merge.py" "$FIRST" "$RESULT")"
+    emit "$(python3 -I "$ROOT/scripts/lib/merge.py" "$FIRST" "$RESULT")"
     ;;
   xray|hysteria)
     printf '%s\n' "$HOST" >"$ROOT/output/.active-deploy"
@@ -77,7 +77,7 @@ case "$step" in
     collect clientcfg
     if [ -n "$SECRET" ]; then
       printf '%s' "$SECRET" | base64 -d \
-        | python3 "$ROOT/scripts/lib/render_client.py" "$OUT/client" "$HOST" "$REALITY_SNI"
+        | python3 -I "$ROOT/scripts/lib/render_client.py" "$OUT/client" "$HOST" "$REALITY_SNI"
     fi
     SECRET=""
     emit "$RESULT"

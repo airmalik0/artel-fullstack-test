@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Снимает чужой процесс с порта узла: ./scripts/free-port.sh <host> <tcp|udp> <port>
 # Службу останавливает и выключает, одиночный процесс завершает. xray, hysteria и
 # sshd не трогает. Печатает JSON с тем, что снято.
 set -euo pipefail
-. "$(dirname "$0")/lib/common.sh"
+. "${0%/*}/lib/common.sh"
 load_target "${1:-}"
 proto="${2:-}"
 port="${3:-}"

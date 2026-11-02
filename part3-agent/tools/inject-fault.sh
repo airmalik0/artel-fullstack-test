@@ -12,7 +12,18 @@ case "${2:-}" in
   stop-xray) remote_sh <<<'systemctl disable --now xray 2>&1 | tail -1; systemctl is-active xray || true' ;;
   busy-tcp443) remote_sh <<'REMOTE'
 systemctl disable --now xray 2>&1 | tail -1
-systemd-run --unit=fake-web --collect python3 -m http.server 443 --bind 0.0.0.0 >/dev/null 2>&1
+# Чужой слушатель: принимает соединение и закрывает, файлов не отдаёт.
+systemd-run --unit=fake-web --collect -p DynamicUser=yes \
+  -p AmbientCapabilities=CAP_NET_BIND_SERVICE -p CapabilityBoundingSet=CAP_NET_BIND_SERVICE \
+  -p ProtectSystem=strict -p ProtectHome=true -p PrivateTmp=true \
+  python3 -I -c 'import socket
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("0.0.0.0", 443))
+s.listen(16)
+while True:
+    conn, _ = s.accept()
+    conn.close()' >/dev/null 2>&1
 sleep 2
 ss -H -ltnp 'sport = :443' | cut -c1-100
 REMOTE

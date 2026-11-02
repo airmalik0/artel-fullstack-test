@@ -9,7 +9,7 @@ HOST="${1:?использование: ./deploy.sh <host>}"
 mkdir -p "output/$HOST"
 rm -f "output/$HOST/verdict.json"
 ./start.sh -p "/deploy-server $HOST" --output-format json </dev/null >"output/$HOST/agent-run.json" || true
-python3 - "$HOST" <<'PY'
+python3 -I - "$HOST" <<'PY'
 import json, sys
 host = sys.argv[1]
 run = json.load(open(f"output/{host}/agent-run.json"))

@@ -47,7 +47,7 @@ fi
 . "$SECRETS"
 
 restart="${restart:-0}"
-python3 - "$PRIVATE_KEY" "$UUID" "$SHORT_ID" "$REALITY_SNI" <<'PY' | ensure_file /etc/xray/config.json 640 root:xray && restart=1
+python3 -I - "$PRIVATE_KEY" "$UUID" "$SHORT_ID" "$REALITY_SNI" <<'PY' | ensure_file /etc/xray/config.json 640 root:xray && restart=1
 import json, sys
 key, uuid, sid, sni = sys.argv[1:5]
 print(json.dumps({

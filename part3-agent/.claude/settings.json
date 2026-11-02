@@ -6,6 +6,7 @@
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "deepseek-flash[1m]",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek-flash",
     "API_TIMEOUT_MS": "600000",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
     "BASH_DEFAULT_TIMEOUT_MS": "300000",
     "BASH_MAX_TIMEOUT_MS": "900000"
   },
@@ -40,6 +41,9 @@
       "Edit(./.env*)",
       "Edit(./scripts/**)",
       "Edit(./start.sh)",
+      "Edit(./.cache/**)",
+      "Write(./.cache/**)",
+      "Bash(tmux *)",
       "Write(./.claude/**)",
       "Write(./.env*)",
       "Write(./scripts/**)",
@@ -75,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"",
             "timeout": 10
           }
         ]
@@ -86,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/verdict_gate.py\"",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/verdict_gate.py\"",
             "timeout": 10
           }
         ]
