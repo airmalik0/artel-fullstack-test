@@ -1,11 +1,11 @@
 # Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
-17:34:26 # внешний конец поднят, та же команда --apply
+17:48:28 # внешний конец поднят, та же команда --apply
 rc=0
 == проверка цели, режим apply ==
 PID 1: /usr/bin/sleep
 /opt/bots/amigo/.env: 640 root:10001
-прежние процессы бота: 36 55 
-приманка 6: подпись 'python3 -m amigo.main -c import time; time.sleep(3600) ', настоящий бот так не запускается
+прежние процессы бота: 38 57 
+приманка 8: подпись 'python3 -m amigo.main -c import time; time.sleep(3600) ', настоящий бот так не запускается
 == 1. файлы починки в /opt/botfix ==
 подготовка прошлого запуска на месте, файлы обновляю
 настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот amigo.main, uid 10001
@@ -24,37 +24,37 @@ PID 1: /usr/bin/sleep
 == 7. переключение ==
 строка запуска прежнего бота (задана профилем, из /proc не берётся: argv пишет сам процесс):
   cd /opt/bots/amigo && exec /usr/local/bin/python3 -B /opt/bots/amigo/run_prod.py
-прежние процессы бота: 36 55 
-+ kill 36
-+ kill 55
-приманка: 6 
-+ kill 6
-+ kill 204
+прежние процессы бота: 38 57 
++ kill 38
++ kill 57
+приманка: 8 
++ kill 8
++ kill 206
 + setsid python3 /opt/botfix/supervisor.py
-откат: bash /var/log/botfix/rollback-20261102T173353Z.sh, журнал: /var/log/botfix/apply-20261102T173429Z.log
+откат: bash /var/log/botfix/rollback-20261102T174754Z.sh, журнал: /var/log/botfix/apply-20261102T174831Z.log
 == 8. проверка: бот сам опрашивает Telegram через новое реле ==
-2026-11-02T17:34:51Z GREEN @artel_repro_malik_bot, poll_age=1s
-17:34:51 # состояние
+2026-11-02T17:48:50Z GREEN @artel_repro_malik_bot, poll_age=1s
+17:48:50 # состояние
    1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
-   6 uid=0 Z (зомби)
-  18 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
-  24 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
-  36 uid=10001 Z (зомби)
-  43 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
-  55 uid=10001 Z (зомби)
- 204 uid=10001 Z (зомби)
- 420 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/supervisor.py
- 425 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --link | /run/botfix/bot/link.sock
- 427 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/relay.py | attach
- 436 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/heartbeat.py | amigo.main
+   8 uid=0 Z (зомби)
+  20 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  26 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  38 uid=10001 Z (зомби)
+  45 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  57 uid=10001 Z (зомби)
+ 206 uid=10001 Z (зомби)
+ 407 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/supervisor.py
+ 412 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --link | /run/botfix/bot/link.sock
+ 414 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/relay.py | attach
+ 423 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/heartbeat.py | amigo.main
 .env: 640 root:10001 ключи: OTHER_KEY HTTPS_PROXY BOT_TOKEN  HTTPS_PROXY=http://127.0.0.1:18190
 322f4f34f6f0 /opt/bots/amigo/.env
 cdc002e4fc12 /opt/bots/amigo/amigo/main.py
 f3e39d24cf74 /entrypoint.sh
 db0ed88cbd92 /usr/local/sbin/amigo-backup.sh
 приманка в entrypoint: 0; PID 1: /usr/bin/sleep; /opt/botfix: есть
-17:34:57 # PermissionError в bot.log: 0
+17:48:55 # PermissionError в bot.log: 0
 python-dotenv 1.2.4 uid 10001 читает .env, ключей: 3
-17:34:59 # живой /ping: новый бот через новое реле
-< #44207 [22:35] pong от pid 436, сообщение ждало 0 с
-< #44209 [22:35] эхо от pid 436: после переключения
+17:48:58 # живой /ping: новый бот через новое реле
+< #44225 [22:48] pong от pid 423, сообщение ждало 0 с
+< #44227 [22:49] эхо от pid 423: после переключения

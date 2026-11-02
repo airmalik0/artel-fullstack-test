@@ -271,13 +271,26 @@ alive() { s=\$(sed 's/.*) //; s/ .*//' "/proc/\$1/stat" 2>/dev/null) && [ "\$s" 
 START=$OLD_START
 LINE=$(printf %q "$OLD_START_LINE")
 ENTRY=$OLD_ENTRY
-if [ -s "\$START" ]; then
+trusted() {  # строка идёт от root: файл и все каталоги над ним только root
+  BAD=\$ENTRY
+  while :; do
+    case "\$(stat -c '%u %a' "\$BAD" 2>/dev/null)" in
+      "0 "[0-7][0145][0145]) ;;
+      *) return 1 ;;
+    esac
+    [ "\$BAD" = / ] && return 0
+    BAD=\$(dirname "\$BAD")
+  done
+}
+TRUSTED=1; trusted || TRUSTED=0
+if [ -s "\$START" ] && [ "\$TRUSTED" = 1 ]; then
   echo "Запуск прежнего бота от root:"
   printf "  setsid bash -c %q </dev/null >>$LOG_DIR/old-bot.out 2>&1 &\n" "\$LINE"
 fi
+[ "\$TRUSTED" = 1 ] || echo "\$BAD не принадлежит root или открыт на запись другим, строку запуска не выдаю."
 SV=\$(cat $STATE_DIR/supervisor.pid 2>/dev/null || true)
 if [ "\$SV" = 1 ]; then
-  echo "Супервизор это PID 1: контейнер остановится. После его старта запустите прежнего бота строкой выше."
+  echo "Супервизор это PID 1: контейнер остановится. После его старта запустите прежнего бота строкой выше, если она напечатана."
   kill 1; exit 0
 fi
 if [ -n "\$SV" ]; then
@@ -285,10 +298,7 @@ if [ -n "\$SV" ]; then
   i=0; while [ \$i -lt 15 ] && alive "\$SV"; do sleep 1; i=\$((i + 1)); done  # супервизор ждёт своих детей
 fi
 [ -s "\$START" ] || { echo "Прежнего бота не было, запускать нечего."; exit 0; }
-case "\$(stat -c '%u %a' "\$ENTRY" 2>/dev/null)" in  # строка идёт от root, файл не должен быть чужим
-  "0 "[0-7][0145][0145]) ;;
-  *) echo "\$ENTRY не принадлежит root или открыт на запись другим, прежний бот не запущен."; exit 1 ;;
-esac
+[ "\$TRUSTED" = 1 ] || { echo "Прежний бот не запущен."; exit 1; }
 setsid bash -c "\$LINE" </dev/null >>$LOG_DIR/old-bot.out 2>&1 &
 pid=\$!
 sleep 3
