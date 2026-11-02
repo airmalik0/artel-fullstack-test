@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+*.pem
+*_ed25519
+*.key
+*.token
+.DS_Store
+__pycache__/
+*.qcow2
+*.img
+*.iso
+output/
