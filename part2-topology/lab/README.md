@@ -27,11 +27,16 @@ run/matrix.py --out results/matrix.csv --append --reps 5 --scenarios sni_rst,sni
 run/failover.py --out results/failover.csv --reps 10             # переключение клиента, около часа
 run/wdtest.py --out results/watchdog.csv --reps 10               # сторож объёма, около полутора часов
 ./lab.sh ssh tspu 'sudo /opt/lab/ctl.py set off; sudo /opt/tspu-venv/bin/python3 /opt/lab/probe.py 5' > results/probe.csv
+run/reality-compat.sh > results/reality-compat.csv               # sing-box против версий Xray
+run/fo-period.py > results/urltest-period.csv                    # настоящий период urltest из журналов прогона
+run/ruhost-hy2.py results/ruhost-hy2.csv 20                      # Hysteria2 вне хостинга, модель выключена
+run/fotable.py results/failover.csv results/watchdog.csv         # таблицы раздела 8.3
+run/check-numbers.py                                             # сверка TOPOLOGY.md с CSV
 run/summary.py results/matrix.csv --md
 ./lab.sh down
 ```
 
-После перезагрузки ВМ повторить `./sync.sh` (адреса `.10-.18` и сервисы поднимает `provision/services-up.sh`).
+После перезагрузки ВМ повторить `./sync.sh` (адреса `.10-.18` и сервисы поднимает `provision/services-up.sh`). Память ВМ задаёт `LAB_MEM`, по умолчанию 2048. Сборка и проба проходят и с 1365.
 
 ## Что в модели
 

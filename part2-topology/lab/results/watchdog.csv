@@ -9,3 +9,13 @@ wd_curtain_tls,7,1,,model_curtain,40,1,1,1,hy2s,7.06,7.43,hy2s,27,4.008,4.008,12
 wd_curtain_tls,8,1,,model_curtain,40,1,1,1,hy2s,8.16,8.66,hy2s,32,4.015,4.015,13.3
 wd_curtain_tls,9,1,,model_curtain,40,1,1,1,hy2s,8.63,8.92,hy2s,33,4.018,4.018,14.5
 wd_curtain_tls,10,1,,model_curtain,40,1,1,1,hy2s,6.45,6.99,hy2s,26,4.012,4.012,14.4
+wd_curtain_all,1,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,7.94,22.67,entry4,88,2.015,4.009,13.3
+wd_curtain_all,2,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,8.44,22.99,entry4,89,2.016,4.015,16.9
+wd_curtain_all,3,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,6.41,20.94,entry4,81,2.016,4.015,14.1
+wd_curtain_all,4,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,6.36,20.94,entry4,82,2.016,4.012,11.2
+wd_curtain_all,5,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,7.61,22.12,entry4,87,2.021,4.008,10.4
+wd_curtain_all,6,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,6.96,21.42,entry4,84,2.019,4.016,10.1
+wd_curtain_all,7,1,,model_curtain_all,60,2,2,3,hy2s>exit2>entry4,3.82,18.27,entry4,71,2.014,2.015,10.5
+wd_curtain_all,8,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,7.22,21.77,entry4,85,2.019,4.011,10.4
+wd_curtain_all,9,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,5.53,20.08,entry4,78,2.019,4.010,9.6
+wd_curtain_all,10,1,,model_curtain_all,60,3,3,3,hy2s>exit2>entry4,4.54,19.08,entry4,74,2.022,4.011,9.2

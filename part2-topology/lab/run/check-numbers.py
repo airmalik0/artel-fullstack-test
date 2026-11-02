@@ -34,6 +34,16 @@ w = [float(r["wire_rx_1m"]) / 1000 for r in m if r["scenario"] == "curtain_tls" 
 has(f"на проводе {min(w):.0f}-{max(w):.0f} КБ", "matrix.csv")
 base = st.median(float(r["overhead_pct"]) for r in m if r["scenario"] == "off" and r["proto"] == "https-ok")
 has(f"это {base:.2f} %".replace(".", ","), "matrix.csv")
+# раздел 8.3 и выбор клиента
+per = list(csv.DictReader(open(f"{R}/urltest-period.csv")))
+v15 = [int(r["gap_s"]) for r in per if r["interval_s"] == "15"]; v5 = [int(r["gap_s"]) for r in per if r["interval_s"] == "5"]
+if sorted(set(v15))[-2:] != [30, 31] or st.median(v15) != 30: bad += 1; print("РАСХОЖДЕНИЕ период 15 с", st.median(v15))
+has(f"при интервале 5 с от {min(v5)} до {max(v5)} с", "urltest-period.csv")
+comp = collections.Counter((r["xray_server"], r["result"].startswith("available")) for r in csv.DictReader(open(f"{R}/reality-compat.csv")) if r["client"].startswith("sing-box"))
+if (comp[("v26.6.27", True)], comp[("v26.9.9", False)], comp[("v26.10.31", False)]) != (3, 3, 3): bad += 1; print("РАСХОЖДЕНИЕ reality-compat", comp)
+has("0 из 3 против Xray 26.9.9 и 26.10.31, 3 из 3 против 26.6.27", "reality-compat.csv")
+fo = list(csv.DictReader(open(f"{R}/failover.csv")))
+has(f"Таких строк {sum(r['valid'] != '1' for r in fo)} из {len(fo)}", "failover.csv")
 # активное зондирование
 g = collections.OrderedDict()
 for r in csv.DictReader(open(f"{R}/probe.csv")):
