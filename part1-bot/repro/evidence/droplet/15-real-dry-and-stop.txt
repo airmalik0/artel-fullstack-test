@@ -1,0 +1,73 @@
+# Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
+17:16:29 # свежий контейнер формы сервера, бот под run_prod.py через старое реле 18182
+   1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
+   7 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 -m amigo.main | -c | import time; time.sleep(3600)
+  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  36 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | /opt/bots/amigo/run_prod.py
+  49 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  55 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | -u | -m | amigo.main
+.env: 640 root:10001 ключи: BOT_TOKEN HTTPS_PROXY OTHER_KEY  HTTPS_PROXY=http://127.0.0.1:18182
+8a411bca83ee /opt/bots/amigo/.env
+cfa02dc32124 /opt/bots/amigo/amigo/main.py
+1b7af019b5e8 /entrypoint.sh
+b97f670c8f27 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: нет
+17:16:31 # сухой прогон
+rc=0
+== проверка цели, режим dry ==
+PID 1: /usr/bin/sleep
+/opt/bots/amigo/.env: 640 root:10001
+прежние процессы бота: 36 55 
+приманка 7: подпись 'python3 -m amigo.main -c import time; time.sleep(3600) ', настоящий бот так не запускается
+== 1. файлы починки в /opt/botfix ==
+настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот amigo.main, uid 10001
+== 2. новый канал: дальше только если getMe ответит через новое реле ==
++ вход реле на 127.0.0.1:18190 под uid 10001
++ getMe через 127.0.0.1:18190, без ответа остановка кодом 3 до всех правок
+== 3. /opt/bots/amigo/.env: только ключи, значения не печатаю, владелец и права прежние ==
++ HTTPS_PROXY=http://127.0.0.1:18190
++ BOT_TOKEN будет заменён, в сухом прогоне токен не передаю
+== 4. очередь сообщений не сбрасывается при старте ==
++ sed -i s/drop_pending_updates=True/drop_pending_updates=False/ /opt/bots/amigo/amigo/main.py
+== 5. пароль бэкапа в файл 600 ==
+новый пароль в /etc/botfix/backup.pass, старый в /etc/botfix/backup.pass.old, /usr/local/sbin/amigo-backup.sh вызывает /opt/botfix/backup.sh
+== 6. супервизор из entrypoint, запуск приманки убираю ==
++ sed -i -e /^# bot-start/,/^# bot-end/d -e /^[A-Za-z_]* "python3 -m amigo.main"$/d -e s|^exec .*sleep infinity$|exec python3 /opt/botfix/supervisor.py| /entrypoint.sh
+== 7. переключение ==
+строка запуска прежнего бота:
+  cd /opt/bots/amigo && exec /usr/local/bin/python3 -B /opt/bots/amigo/run_prod.py
+прежние процессы бота: 36 55 
++ kill 36
++ kill 55
+приманка: 7 
++ kill 7
++ setsid python3 /opt/botfix/supervisor.py
+== сухой прогон, ничего не изменено. Настоящий запуск: --apply ==
+Внешний конец реле запускается на машине с сетью, потом повторите эту же команду с --apply:
+  python3 fix/relay.py out --allow api.telegram.org:443 --journal relay-out.log -- ssh -o BatchMode=yes root@<стенд> docker exec -i artel-real python3 /opt/botfix
+Настоящему боту для ответов ещё нужен второй --allow api.deepseek.com:443.
+17:16:37 # состояние до и после сухого прогона: без разницы
+17:16:37 # --apply, внешнего конца нового реле нет
+rc=3
+== проверка цели, режим apply ==
+PID 1: /usr/bin/sleep
+/opt/bots/amigo/.env: 640 root:10001
+прежние процессы бота: 36 55 
+приманка 7: подпись 'python3 -m amigo.main -c import time; time.sleep(3600) ', настоящий бот так не запускается
+== 1. файлы починки в /opt/botfix ==
+настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот amigo.main, uid 10001
+== 2. новый канал: дальше только если getMe ответит через новое реле ==
++ вход реле на 127.0.0.1:18190 под uid 10001
+СТОП: новый канал не отвечает: нет связи с Telegram: Tunnel connection failed: 503 relay link down
+Прежний бот не тронут: /opt/bots/amigo/.env, /opt/bots/amigo/amigo/main.py, /entrypoint.sh и процессы без изменений.
+Поставлены только /opt/botfix и вход реле на 127.0.0.1:18190. Убрать их: bash /var/log/botfix/rollback-20261102T171640Z.sh
+Внешний конец реле запускается на машине с сетью, потом повторите эту же команду с --apply:
+  python3 fix/relay.py out --allow api.telegram.org:443 --journal relay-out.log -- ssh -o BatchMode=yes root@<стенд> docker exec -i artel-real python3 /opt/botfix
+Настоящему боту для ответов ещё нужен второй --allow api.deepseek.com:443.
+17:17:05 # разница с состоянием до
+>  207 uid=10001 S exe=- argv=python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --link | /run/botfix/bot/link.sock
+< приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: нет
+> приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: есть
+17:17:05 # живой /ping: прежний бот через старое реле
+< #44175 [22:17] pong от pid 55, сообщение ждало 1 с

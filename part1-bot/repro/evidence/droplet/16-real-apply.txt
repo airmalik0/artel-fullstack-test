@@ -1,0 +1,60 @@
+# Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
+17:17:15 # внешний конец поднят, та же команда --apply
+rc=0
+== проверка цели, режим apply ==
+PID 1: /usr/bin/sleep
+/opt/bots/amigo/.env: 640 root:10001
+прежние процессы бота: 36 55 
+приманка 7: подпись 'python3 -m amigo.main -c import time; time.sleep(3600) ', настоящий бот так не запускается
+== 1. файлы починки в /opt/botfix ==
+подготовка прошлого запуска на месте, файлы обновляю
+настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот amigo.main, uid 10001
+== 2. новый канал: дальше только если getMe ответит через новое реле ==
+вход реле уже поднят
+новый канал жив: getMe через 127.0.0.1:18190 вернул @artel_repro_malik_bot
+== 3. /opt/bots/amigo/.env: только ключи, значения не печатаю, владелец и права прежние ==
++ HTTPS_PROXY=http://127.0.0.1:18190
++ BOT_TOKEN заменён
+== 4. очередь сообщений не сбрасывается при старте ==
++ sed -i s/drop_pending_updates=True/drop_pending_updates=False/ /opt/bots/amigo/amigo/main.py
+== 5. пароль бэкапа в файл 600 ==
+новый пароль в /etc/botfix/backup.pass, старый в /etc/botfix/backup.pass.old, /usr/local/sbin/amigo-backup.sh вызывает /opt/botfix/backup.sh
+== 6. супервизор из entrypoint, запуск приманки убираю ==
++ sed -i -e /^# bot-start/,/^# bot-end/d -e /^[A-Za-z_]* "python3 -m amigo.main"$/d -e s|^exec .*sleep infinity$|exec python3 /opt/botfix/supervisor.py| /entrypoint.sh
+== 7. переключение ==
+строка запуска прежнего бота:
+  cd /opt/bots/amigo && exec /usr/local/bin/python3 -B /opt/bots/amigo/run_prod.py
+прежние процессы бота: 36 55 
++ kill 36
++ kill 55
+приманка: 7 
++ kill 7
++ kill 207
++ setsid python3 /opt/botfix/supervisor.py
+откат: bash /var/log/botfix/rollback-20261102T171640Z.sh, журнал: /var/log/botfix/apply-20261102T171717Z.log
+== 8. проверка: бот сам опрашивает Telegram через новое реле ==
+2026-11-02T17:17:39Z GREEN @artel_repro_malik_bot, poll_age=1s
+17:17:39 # состояние
+   1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
+   7 uid=0 Z (зомби)
+  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  36 uid=10001 Z (зомби)
+  49 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  55 uid=10001 Z (зомби)
+ 207 uid=10001 Z (зомби)
+ 425 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/supervisor.py
+ 430 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --link | /run/botfix/bot/link.sock
+ 432 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/relay.py | attach
+ 441 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/heartbeat.py | amigo.main
+.env: 640 root:10001 ключи: OTHER_KEY HTTPS_PROXY BOT_TOKEN  HTTPS_PROXY=http://127.0.0.1:18190
+322f4f34f6f0 /opt/bots/amigo/.env
+cdc002e4fc12 /opt/bots/amigo/amigo/main.py
+f3e39d24cf74 /entrypoint.sh
+db0ed88cbd92 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 0; PID 1: /usr/bin/sleep; /opt/botfix: есть
+17:17:43 # PermissionError в bot.log: 0
+python-dotenv 1.2.4 uid 10001 читает .env, ключей: 3
+17:17:46 # живой /ping: новый бот через новое реле
+< #44177 [22:17] pong от pid 441, сообщение ждало 0 с
+< #44179 [22:17] эхо от pid 441: после переключения

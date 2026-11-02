@@ -1,0 +1,16 @@
+# Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
+17:20:25 # перезапуск контейнера: entrypoint формы сервера без приманки, супервизор PID 1
+   1 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/supervisor.py
+   7 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --lin
+   8 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/heartbeat.py | amigo.main
+   9 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/relay.py | attach
+.env: 640 root:10001 ключи: OTHER_KEY HTTPS_PROXY BOT_TOKEN  HTTPS_PROXY=http://127.0.0.1:18190
+322f4f34f6f0 /opt/bots/amigo/.env
+cdc002e4fc12 /opt/bots/amigo/amigo/main.py
+f3e39d24cf74 /entrypoint.sh
+db0ed88cbd92 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 0; PID 1: /usr/local/bin/python3.12; /opt/botfix: есть
+2026-11-02T17:21:17Z GREEN @artel_repro_malik_bot, poll_age=4s
+rc=0
+17:21:17 # живой /ping, финальное состояние
+< #44185 [22:21] pong от pid 8, сообщение ждало 1 с

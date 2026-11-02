@@ -75,6 +75,15 @@ def stop(*_):
     for pid in running:
         with contextlib.suppress(ProcessLookupError):
             os.kill(pid, signal.SIGTERM)
+    deadline = time.monotonic() + 10  # откат запускает прежнего бота сразу: два опроса одного токена дают 409
+    while running and time.monotonic() < deadline:
+        with contextlib.suppress(ChildProcessError):
+            pid, _ = os.waitpid(-1, os.WNOHANG)
+            running.pop(pid, None)
+        time.sleep(0.1)
+    for pid in running:
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGKILL)
     sys.exit(0)
 
 

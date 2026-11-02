@@ -16,6 +16,7 @@ TLS идёт от бота до Telegram, реле видит только ши�
 """
 import argparse
 import asyncio
+import os
 import re
 import socket
 import struct
@@ -146,10 +147,12 @@ def run_attach(args):
     out = sys.stdout.buffer
 
     def pump_to_stdout():
-        while data := sock.recv(CHUNK):
-            out.write(data)
-            out.flush()
-        sock.close()
+        try:
+            while data := sock.recv(CHUNK):
+                out.write(data)
+                out.flush()
+        finally:  # вход реле закрыл линию: выхожу, иначе внешняя сторона считает её живой и не переподключается
+            os._exit(0)
 
     threading.Thread(target=pump_to_stdout, daemon=True).start()
     while data := sys.stdin.buffer.read1(CHUNK):

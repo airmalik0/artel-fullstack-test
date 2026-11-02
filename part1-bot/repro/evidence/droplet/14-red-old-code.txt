@@ -1,0 +1,80 @@
+# Контейнер формы сервера, живой Telegram. Время UTC, 02.11.2026
+17:01:56 # СТАРЫЙ КОД, свежий контейнер формы сервера, внешнего реле нового канала нет
+   1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
+   7 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 -m amigo.main | -c | import time; time.sleep(3600)
+  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  37 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | /opt/bots/amigo/run_prod.py
+  50 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  56 uid=10001 S exe=- argv=/usr/local/bin/python3 | -B | -u | -m | amigo.main
+  91 uid=0 S exe=/usr/bin/bash argv=bash | -s
+.env: 640 root:10001 ключи: BOT_TOKEN HTTPS_PROXY OTHER_KEY  HTTPS_PROXY=http://127.0.0.1:18182
+8a411bca83ee /opt/bots/amigo/.env
+cfa02dc32124 /opt/bots/amigo/amigo/main.py
+1b7af019b5e8 /entrypoint.sh
+b97f670c8f27 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: нет
+17:01:59 # старый --apply
+rc=0
+старые процессы бота: 37 56 
+откат: bash /var/log/botfix/rollback-20261102T170202Z.sh, журнал: /var/log/botfix/apply-20261102T170202Z.log
+2026-11-02T17:02:06Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, опроса ещё не было
+17:02:31 # через 25 с
+   1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
+   7 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 -m amigo.main | -c | import time; time.sleep(3600)
+  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  37 uid=10001 Z (зомби)
+  50 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  56 uid=10001 Z (зомби)
+ 204 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | /opt/botfix/supervisor.py
+ 206 uid=10001 S exe=- argv=/usr/local/bin/python3 | -u | /opt/botfix/relay.py | in | --listen | 127.0.0.1:18190 | --link | /run/botfix/bot/link.sock
+ 214 uid=0 S exe=/usr/bin/bash argv=bash | -s
+.env: 600 root:0 ключи: OTHER_KEY HTTPS_PROXY BOT_TOKEN  HTTPS_PROXY=http://127.0.0.1:18190
+322f4f34f6f0 /opt/bots/amigo/.env
+cdc002e4fc12 /opt/bots/amigo/amigo/main.py
+1f061eaaa64a /entrypoint.sh
+db0ed88cbd92 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: есть
+17:02:36 # bot.log бота под супервизором, хвост
+5
+    with open(self.dotenv_path, encoding=self.encoding) as stream:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: '/opt/bots/amigo/.env'
+2026-11-02T17:02:33Z start health pid=213
+2026-11-02T17:02:37Z start bot pid=241
+2026-11-02T17:02:38Z exit bot pid=241 status=1 after 1s, restart in 32s
+17:02:38 # pgrep по имени: приманка выглядит живым ботом
+['7'], второй pid в выводе был сам этот запрос
+17:02:50 # живой /ping при новом боте в круге падений
+bot.py rc=0
+== work → @artel_repro_malik_bot (id=9029388710, bot): отправлено: '/ping' ==
+(бот ничего не прислал)
+КЛАВИАТУРА: нет
+17:03:07 # старый откат
+rollback_rc=0
+   1 uid=0 S exe=/usr/bin/sleep argv=/lib/systemd/systemd --system --deserialize 31 | infinity
+   7 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 -m amigo.main | -c | import time; time.sleep(3600)
+  19 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/ssh_api_relay.py | in | --listen | 127.0.0.1:18182 | --link | /run/oldrelay/link.sock
+  25 uid=10001 S exe=- argv=python3 | -I | -u | /opt/amigo-demo/run_demo_bot.py
+  37 uid=10001 Z (зомби)
+  50 uid=0 S exe=/usr/local/bin/python3.12 argv=python3 | -I | /opt/amigo-demo/ssh_api_relay.py | attach | --link | /run/oldrelay/link.sock
+  56 uid=10001 Z (зомби)
+ 204 uid=0 Z (зомби)
+ 206 uid=10001 Z (зомби)
+ 276 uid=0 S exe=/usr/bin/bash argv=bash | -s
+.env: 640 root:10001 ключи: BOT_TOKEN HTTPS_PROXY OTHER_KEY  HTTPS_PROXY=http://127.0.0.1:18182
+8a411bca83ee /opt/bots/amigo/.env
+cfa02dc32124 /opt/bots/amigo/amigo/main.py
+1b7af019b5e8 /entrypoint.sh
+b97f670c8f27 /usr/local/sbin/amigo-backup.sh
+приманка в entrypoint: 1; PID 1: /usr/bin/sleep; /opt/botfix: нет
+17:03:21 # живой /ping после старого отката: run_prod.py никто не поднял
+bot.py rc=0
+== work → @artel_repro_malik_bot (id=9029388710, bot): отправлено: '/ping' ==
+(бот ничего не прислал)
+КЛАВИАТУРА: нет
+17:03:38 # set -e и kill: завершившийся pid обрывает скрипт посреди применения
++ kill 999999
+environment: line 1: kill: (999999) - No such process
+rc=1
