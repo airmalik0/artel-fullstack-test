@@ -6,7 +6,13 @@ if [ "$PHASE" = user ]; then
   STAMP=/var/lib/artel-agent/last-upgrade
   if [ -z "$(find "$STAMP" -mmin -1440 2>/dev/null)" ]; then
     before="$(sha256sum /var/lib/dpkg/status)"
-    "${APT[@]}" update >/dev/null 2>&1 || die "apt update не прошёл"
+    # На свежем сервере первые минуты списки держат cloud-init и apt-daily, а Lock::Timeout
+    # распространяется только на dpkg. Поэтому несколько попыток, а не отказ с первой.
+    for try in 1 2 3 4 5 6 7 8 9 10 11 12 0; do
+      "${APT[@]}" update >/dev/null 2>&1 && break
+      [ "$try" != 0 ] || die "apt update не прошёл"
+      sleep 10
+    done
     "${APT[@]}" upgrade >/dev/null 2>&1 || die "apt upgrade не прошёл"
     [ "$before" = "$(sha256sum /var/lib/dpkg/status)" ] || changed "обновления установлены"
     mkdir -p "${STAMP%/*}"
