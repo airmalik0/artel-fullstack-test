@@ -1,0 +1,20 @@
+Живая сессия в tmux, команды набраны в той же сессии, где шла проба доступа.
+
+== /status
+   Auth token:                 apiKeyHelper
+   API key:                    apiKeyHelper
+   Anthropic base URL:         https://api.deepseek.com/anthropic
+   Model:                      deepseek-flash[1m]
+   Managed settings (remote):  not fetched — not available with a custom ANTHROPIC_BASE_URL
+   Organization policy:        not fetched with a custom ANTHROPIC_BASE_URL
+== /cost
+   Total cost:            $0.0954 (costs may be inaccurate due to usage of unknown models)
+   Usage by model:
+     deepseek-flash[1m]:  15.5k input, 124 output, 30.0k cache read, 0 cache write ($0.0954)
+   Prompt cache (main):   3 requests · 66% of input tokens from cache · no misses · warm (5m TTL, last activity 1m 17s ago)
+== /compact
+❯ /compact
+  ⎿  Compacted (ctrl+o to see full summary)
+== вопрос после /compact про число из начала разговора
+❯ Which number did you write after THIRD- earlier? Reply with only that number. No tools.
+● 6511

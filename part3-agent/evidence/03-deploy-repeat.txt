@@ -1,0 +1,53 @@
+Второй запуск на том же сервере.
+
+Отпечаток состояния tools/state-hash.sh до второго запуска:
+cbb3615423998ce8
+xray 148654315
+hysteria 155721540
+ssh 115798405
+
+после второго запуска:
+cbb3615423998ce8
+xray 148654315
+hysteria 155721540
+ssh 115798405
+
+совпадают: True
+
+rc=0
+SNI: api.deepseek.com(1) api.ipify.org(1) www.microsoft.com(2)
+
+verdict ok: True, changed_this_run: 0
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+шаги этого запуска:
+  12:29:07 recon     ok=True изменений=0
+  12:29:55 harden    ok=True изменений=8
+  12:30:23 xray      ok=True изменений=9
+  12:30:30 hysteria  ok=True изменений=9
+  12:30:33 clientcfg ok=True изменений=0
+  12:30:45 verify    ok=True изменений=0
+  12:31:36 recon     ok=True изменений=0
+  12:31:47 harden    ok=True изменений=0
+  12:31:52 xray      ok=True изменений=0
+  12:31:56 hysteria  ok=True изменений=0
+  12:31:58 clientcfg ok=True изменений=0
+  12:32:08 verify    ok=True изменений=0
+ходов главного агента: 4, время: 63 с
+модели: {"deepseek-flash[1m]": {"вход": 27955, "выход": 3372, "кэш": 75648}, "deepseek-flash": {"вход": 5450, "выход": 475, "кэш": 5248}}
+total_cost_usd по ценам Anthropic: 0.3036
+итог агента:
+Развёртывание завершено. Итог из `verdict.json`:
+
+- **ok: true** (проверено `./scripts/verdict.sh <HOST_B>`, код 0)
+- **Транспорты:**
+  - `transport_reality` — ok, `exit_ip=<HOST_B>`
+  - `transport_hysteria` — ok, `exit_ip=<HOST_B>`
+- **Прочие проверки:** `server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports` — все ok, провалов нет.
+- **changed_this_run: 0** — узел уже был в целевом состоянии, ни один шаг (`recon`, `harden`, `xray`, `hysteria`, `clientcfg`) ничего не менял.
+- **С портов ничего не снимал:** свободных/чужих процессов не было, `free-port.sh` не вызывался.
+- **Нерешённого нет** — все шаги и все проверки вернули `ok: true`, `reason` пуст.

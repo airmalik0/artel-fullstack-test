@@ -10,7 +10,12 @@ CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-2.1.316}"
 [ "$(id -u)" -eq 0 ] || { echo "нужен root" >&2; exit 1; }
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get -o DPkg::Lock::Timeout=300 update -qq
+# Первые минуты после загрузки списки держат cloud-init и apt-daily.
+for try in 1 2 3 4 5 6 7 8 9 10 11 12 0; do
+  apt-get -o DPkg::Lock::Timeout=300 update -qq && break
+  [ "$try" != 0 ] || exit 1
+  sleep 10
+done
 apt-get -o DPkg::Lock::Timeout=300 install -y -qq --no-install-recommends \
   tmux jq curl git rsync openssh-client ca-certificates python3 bubblewrap socat >/dev/null
 

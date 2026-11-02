@@ -1,0 +1,23 @@
+Проба с двумя одноразовыми ключами со стороны клиента, сокет .agent-home/tmux.sock:
+sessions: agent windows=1
+pane_pid present: True
+TMUX variables in claude environment: 0
+old socket in /tmp live: no
+operator prompt reached the model, computed answer is in the pane: True
+viewer attached, its screen shows the same session: True
+client flags: attached,focused,UTF-8 | attached,focused,ignore-size,read-only,UTF-8
+viewer saw the new answer live over its own connection: True
+viewer input: windows and panes unchanged: True
+viewer input: new text in pane: False
+viewer input: files created: 0
+operator ssh killed with SIGKILL right after sending a long prompt
+session after the drop: agent windows=1
+same session, same created timestamp: True
+answer finished with no operator attached: True
+reattach by one command, same pane process: True, screen has the answer: True
+after both clients gone: clients=0, session alive: yes
+viewer key, arbitrary command: rc=1 has_uid=False text='open terminal failed: not a terminal'
+operator key, arbitrary command: rc=1 has_uid=False text='open terminal failed: not a terminal'
+viewer key, port forward gives ssh banner: False
+password login: rc=255 text='agent@<HOST_A>: Permission denied (publickey).'
+scp with viewer key: rc=255

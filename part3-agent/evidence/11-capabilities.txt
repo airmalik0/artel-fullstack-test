@@ -1,0 +1,7 @@
+Возможности через DeepSeek, по одному прогону:
+
+WebSearch: ответ 'v26.10.31', ходов 5, SNI: api.deepseek.com(6) 
+WebFetch: ответ 'Example Domain', ходов 3, SNI: api.deepseek.com(4) example.com(1) 
+картинка через Read: ответ 'Red', ходов 2, SNI: api.deepseek.com(2) 
+PDF через Read: ответ 'BLUE-MARKER-77', ходов 6, SNI: api.deepseek.com(6) 
+--json-schema: ответ '{"ok":true}', ходов 2, SNI: api.deepseek.com(1)

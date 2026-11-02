@@ -1,0 +1,75 @@
+Намеренные сбои через tools/inject-fault.sh, на рабочем узле. Этот прогон был раньше финального кода; после него менялись песочница и повторы apt, логика шагов нет.
+
+== служба xray остановлена на рабочем узле
+verdict ok: True, changed_this_run: 2
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+шаги: recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True verify:True verify:False recon:True harden:True xray:True hysteria:True clientcfg:True verify:True
+модели: deepseek-flash, deepseek-flash[1m]
+итог агента: Узел развёрнут и проверен.
+
+**Итог по `verdict.json`**
+
+- `ok`: **true**
+- Проверки транспортов:
+  - `transport_reality` — **ok**, `exit_ip=<HOST_B>`
+  - `transport_hysteria` — **ok**, `exit_ip=<HOST_B>`
+  - также ok: `server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports`
+- `changed_this_run`: **2** — оба изменения на шаге `xray` (включён автозапуск и запущена служба). Остальные шаги (`recon`, `harden`, `hysteria`, `clientcfg`) прошли без изменений.
+- С портов ничего не снимал: чужой процесс отсутствовал, `free-port.sh` не потребовался.
+- Нерешённого нет: все проверки в статусе `ok`, отказов нет.
+
+== TCP/443 занят чужим процессом
+verdict ok: True, changed_this_run: 2
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+шаги: recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True verify:True verify:False recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:False xray:True hysteria:True clientcfg:True verify:True
+модели: deepseek-flash, deepseek-flash[1m], deepseek-v4-pro[1m]
+итог агента: Фоновый таймер ожидания завершился; на результат это не влияет — вердикт `ok: true` остаётся в силе.
+
+== TCP/443 занят другим слушателем, повтор после правок защиты
+verdict ok: True, changed_this_run: 2
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+шаги: recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True verify:True verify:False recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:False xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True hysteria:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True hysteria:True verify:True verify:True verify:True verify:True recon:True harden:True xray:False xray:True hysteria:True clientcfg:True verify:True
+модели: deepseek-flash, deepseek-flash[1m], deepseek-v4-pro[1m]
+итог агента: Фоновое ожидание завершилось; на результат это не влияет — развёртывание уже закрыто с `ok: true` по `verdict.sh`.
+
+== UDP/443 закрыт облачным файрволом, агент починить не может
+verdict ok: False, changed_this_run: 2
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: fail exit_ip=нет ответа ожидался <HOST_B>
+шаги: recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True verify:True verify:False recon:True harden:True xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:False xray:True hysteria:True clientcfg:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True hysteria:True verify:True recon:True harden:True xray:True hysteria:True clientcfg:True verify:True hysteria:True verify:True verify:True
+модели: deepseek-flash, deepseek-flash[1m], deepseek-v4-pro[1m]
+итог агента: ## Итог
+
+**`ok: false`** — узел не подтверждён.
+
+| Проверка транспорта | Статус |
+|---|---|
+| Reality (TCP/443) | **ok** — `exit_ip=<HOST_B>` |
+| Hysteria2 (UDP/443) | **fail** — `exit_ip=нет ответа ожидался <HOST_B>` |
+
+Прочие проверки (`server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports`) — `ok`.
+
+**`changed_this_run`: 2** — шаг `hysteria` обновил `/etc/systemd/system/hysteria.service` и перезапустил службу. Остальные шаги (`recon`, `harden`, `xray`, `clientcfg`) изменений не вносили.
+
+**С портов ничего не снималось.** UDP/443 держит `hysteria`, TCP/443 — `xray`, TCP/22 — `sshd`; чужих процессов не было, `free-port.sh` не применялся.
+
+**Осталось нерешённым:** з

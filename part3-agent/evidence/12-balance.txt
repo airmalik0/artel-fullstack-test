@@ -1,0 +1,24 @@
+Снимки /user/balance, доллары, два знака. Часть прогонов шла на подставной модели и денег не тратила.
+bal0 17.23 15:45:36
+bal 17.21 15:49:04
+bal 17.16 16:07:29 before-deploy1
+bal 17.14 16:14:41 after-deploy1
+bal 17.12 16:16:34 after-deploy2
+bal 17.09 16:24:54 after-F2
+bal 16.98 16:35:05 during-F3
+bal 16.91 16:44:10 after-F3
+bal 16.80 17:01:00 check
+bal 16.77 17:03:26 at-handoff
+bal 16.75 17:06:30 start-successor
+bal 16.74 17:13:21 before-p1
+bal 16.73 17:15:27 after-p1
+bal 16.73 17:16:33 before-isolation
+bal 16.73 17:16:46 after-isolation
+bal 16.72 17:18:38 before-isolation
+bal 16.72 17:19:16 after-isolation
+bal 16.71 17:21:04 before-deploy-clean
+bal 16.67 17:24:41 after-deploy-clean
+bal 16.67 17:26:08 after-deploy-repeat
+bal 16.66 17:28:43 before-final-deploy
+bal 16.63 17:31:19 after-final-deploy
+bal 16.63 17:32:44 after-final-repeat

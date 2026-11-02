@@ -1,0 +1,37 @@
+Чистый Ubuntu 24.04, запуск ./deploy.sh из распакованного архива на хосте агента. Один агент, без человека.
+
+rc=0
+SNI: api.deepseek.com(1) api.ipify.org(1) github.com(2) release-assets.githubusercontent.com(2) www.microsoft.com(2)
+
+verdict ok: True, changed_this_run: 26
+  server_state: ok 
+  ext_root_closed: ok 
+  ext_password_closed: ok 
+  ext_ports: ok 
+  transport_reality: ok exit_ip=<HOST_B>
+  transport_hysteria: ok exit_ip=<HOST_B>
+шаги этого запуска:
+  12:29:07 recon     ok=True изменений=0
+  12:29:55 harden    ok=True изменений=8
+  12:30:23 xray      ok=True изменений=9
+  12:30:30 hysteria  ok=True изменений=9
+  12:30:33 clientcfg ok=True изменений=0
+  12:30:45 verify    ok=True изменений=0
+ходов главного агента: 6, время: 135 с
+модели: {"deepseek-flash[1m]": {"вход": 28604, "выход": 4264, "кэш": 92544}, "deepseek-flash": {"вход": 5479, "выход": 833, "кэш": 5248}}
+total_cost_usd по ценам Anthropic: 0.3467
+итог агента:
+Развёртывание завершено, `verdict.sh` вернул `"ok": true`.
+
+**Итог (из verdict.json):**
+
+- **ok:** `true`
+- **Транспорты:**
+  - `transport_reality` — ok, `exit_ip=<HOST_B>`
+  - `transport_hysteria` — ok, `exit_ip=<HOST_B>`
+- **Внешние проверки:** `server_state`, `ext_root_closed`, `ext_password_closed`, `ext_ports` — все ok
+- **changed_this_run:** 26 (recon 0, harden 8, xray 9, hysteria 9, clientcfg 0)
+- **Порты:** ничего не снимал — на момент recon TCP/443 и UDP/443 были свободны, чужих процессов на них не было
+- **Нерешённое:** нет; клиентские конфиги сформированы в `output/<HOST_B>/client/` (содержимое не читал — секреты)
+
+баланс DeepSeek за прогон снизился на $0.03 (два знака, кабинет округляет)

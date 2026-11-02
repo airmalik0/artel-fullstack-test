@@ -1,0 +1,18 @@
+Какая модель ушла на провод (tools/wire-tap.py).
+
+--model sonnet при ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro:
+  deepseek-v4-pro
+
+WebFetch, страницу обрабатывает отдельный фоновый вызов:
+  переменные не заданы: deepseek-flash x4
+  ANTHROPIC_SMALL_FAST_MODEL=deepseek-v4-pro: deepseek-flash x3, deepseek-v4-pro x1
+  ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-pro: deepseek-flash x3, deepseek-v4-pro x1
+
+Интерактивная сессия, один вопрос без инструментов, фонового вызова не было:
+  SMALL: deepseek-flash
+  HAIKU: deepseek-flash
+
+CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR, подставная модель, две команды подряд: mkdir -p sub && cd sub, затем pwd:
+  значение 1: /home/agent/lab/work2
+  значение 0: /home/agent/lab/work2/sub
+В поставке cd отклоняется раньше, blockReadsOutsideWorkingDirectories, вторая команда даёт корень папки.

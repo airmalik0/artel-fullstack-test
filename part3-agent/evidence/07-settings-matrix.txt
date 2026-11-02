@@ -1,0 +1,32 @@
+Запрос на проводе (tools/wire-tap.py), поля: модель, инструментов, thinking, effort, статус:
+  CLAUDE_CODE_EFFORT_LEVEL=max               deepseek-flash tools=12 thinking={"type": "adaptive", "display": "omitted"} effort=max status=200
+  MAX_THINKING_TOKENS=0                      deepseek-flash tools=12 thinking=null effort=high status=200
+  CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1   deepseek-flash tools=21 thinking={"type": "adaptive"} effort=high status=200
+  CLAUDE_CODE_ATTRIBUTION_HEADER=0           deepseek-flash tools=12 thinking={"type": "adaptive", "display": "omitted"} effort=high status=200
+  --model opus                               deepseek-v4-pro tools=12 thinking={"type": "adaptive", "display": "omitted"} effort=high status=200
+  --model haiku                              deepseek-flash tools=12 thinking={"type": "adaptive", "display": "omitted"} effort=high status=200
+  CLAUDE_CODE_DISABLE_THINKING=1             deepseek-flash tools=12 thinking=null effort=high status=200
+
+SNI соединений и модели в результате (tcpdump, tshark):
+C0-base SNI: api.anthropic.com(2) api.deepseek.com(2)  модели: ["claude-opus-5-5"]
+C1-model SNI: api.anthropic.com(2) api.deepseek.com(2)  модели: ["deepseek-flash"]
+C2-noness SNI: api.deepseek.com(1)  модели: ["deepseek-flash"]
+C3-1m SNI: api.deepseek.com(1)  модели: ["deepseek-flash[1m]"]
+C4-telemetry SNI: api.anthropic.com(1) api.deepseek.com(2)  модели: ["deepseek-flash"]
+T2 SNI: api.anthropic.com(1) api.deepseek.com(4) example.com(1)  модели: ["deepseek-flash","deepseek-flash[1m]"]
+T2b SNI: api.deepseek.com(4) example.com(1)  модели: ["deepseek-flash","deepseek-flash[1m]"]
+
+C0 базовая настройка, C1 добавлена ANTHROPIC_MODEL, C2 добавлена CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC,
+C3 суффикс [1m], C4 вместо неё DISABLE_TELEMETRY, DISABLE_ERROR_REPORTING и DISABLE_AUTOUPDATER,
+T2 WebFetch без skipWebFetchPreflight, T2b с ней.
+
+Прямой запрос к DeepSeek с именем claude-opus-5-5:
+{"model":"claude-opus-5-5","type":"message","usage":{"i":84,"o":1}}
+
+API_TIMEOUT_MS на молчащем сервере, обрыв извне через 40 с:
+API_TIMEOUT_MS=3000 elapsed=40.1s last=[claude-code:unrecognized_model] {"model":"deepseek-flash[1m]","query_source":"sdk"}
+API_TIMEOUT_MS=9000 elapsed=40.1s last=[claude-code:unrecognized_model] {"model":"deepseek-flash[1m]","query_source":"sdk"}
+
+CLAUDE_CODE_SUBPROCESS_ENV_SCRUB, разрешённый шаг recon, подставная модель:
+ENV_SCRUB=0: {"step": "recon", "ok": true, "changed": [], "checks": {"python3": "ok", "has_systemd": "ok", "disk_1gb": "ok", "sni_tls13": "ok"}, "facts": {"os": "ubuntu 24.0
+ENV_SCRUB=1: Exit code 2 нет ключа для входа на цель: tools/new-target-key.sh
