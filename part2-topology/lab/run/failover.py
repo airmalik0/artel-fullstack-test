@@ -61,7 +61,7 @@ class Probe:
     def offset(self):
         return min(self.offs)
 def path_by_port(log):
-    """Журнал sing-box: id соединения -> локальный порт клиента и выбранный outbound."""
+    """Журнал sing-box: локальный порт клиента -> выбранные outbound по порядку соединений. Порт за прогон может повториться."""
     port, tag = {}, {}
     for l in log.splitlines():
         m = re.search(r"\[(\d+) [^\]]*\] inbound/socks\[[^\]]*\]: inbound connection from 127\.0\.0\.1:(\d+)", l)
@@ -70,7 +70,17 @@ def path_by_port(log):
         m = re.search(r"\[(\d+) [^\]]*\] outbound/\w+\[(\w+)\]: outbound connection to", l)
         if m and m.group(2) != "auto":
             tag[m.group(1)] = m.group(2)
-    return {port[i]: tag[i] for i in port if i in tag}
+    out = {}
+    for i, p in port.items():
+        out.setdefault(p, []).append(tag.get(i, "?"))
+    return out
+def assign(rows, via):
+    """Каждому запросу его путь: запросы с одним портом разбираются по порядку начала."""
+    used = {}; res = {}
+    for r in sorted(rows):
+        k = used.get(r[4], 0); used[r[4]] = k + 1
+        res[r] = via[r[4]][k] if k < len(via.get(r[4], ())) else "?"
+    return res
 def start_client(mech, interval, tol=300):
     if mech == "urltest":
         ssh("client", f"sudo /opt/lab/sbctl.sh start urltest {interval}s {tol}")
@@ -96,13 +106,13 @@ def run_once(name, c, rep, tol=300):
     probe.stop()
     log = ssh("client", "sudo cat /tmp/sb.log")
     os.makedirs(RAW, exist_ok=True); open(f"{RAW}/{name}-{rep}-{int(t_fault)}.log", "w").write(log)
-    via = path_by_port(log); off = probe.offset
+    via = assign(probe.rows, path_by_port(log)); off = probe.offset
     LAST.update(t_fault=t_fault, off=off)
     rows = sorted(probe.rows, key=lambda r: r[1])
     before = [r for r in rows if r[1] + off < t_fault]
-    pre_via = sorted({via.get(r[4], "?") for r in before if r[2]})
+    pre_via = sorted({via[r] for r in before if r[2]})
     after = [r for r in rows if r[1] + off >= t_fault]
-    fb = next((r for r in after if r[2] and via.get(r[4], "?") not in (PRIMARY, "?")), None)
+    fb = next((r for r in after if r[2] and via[r] not in (PRIMARY, "?")), None)
     failed = sum(1 for r in after if not r[2] and (fb is None or r[1] <= fb[1]))
     last_ok = max((r[1] for r in rows if r[2] and (fb is None or r[1] < fb[1])), default=None)
     why = []
@@ -112,7 +122,7 @@ def run_once(name, c, rep, tol=300):
     if failed == 0: why.append("no_failure_seen")
     return dict(zip(HEAD, [name, mech, interval, fault, obj, rep, int(not why), ";".join(why), now_before,
                 sum(r[2] for r in before), len(before), "+".join(pre_via), f"{pre:.2f}", f"{t_ack - t_fault:.3f}",
-                f"{fb[1] + off - t_fault:.2f}" if fb else "", via.get(fb[4], "") if fb else "",
+                f"{fb[1] + off - t_fault:.2f}" if fb else "", via[fb] if fb else "",
                 f"{fb[1] - last_ok:.2f}" if fb and last_ok else "", failed, now_after, win, f"{os.getloadavg()[0]:.1f}"]))
 def main():
     a = argparse.ArgumentParser(); a.add_argument("--out", required=True); a.add_argument("--reps", type=int, default=10)

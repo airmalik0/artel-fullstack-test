@@ -14,7 +14,8 @@ for k, v in g.items():
         print(f"| {k} | нет действительных строк из {len(v)} | | | | | |"); continue
     sw = num(r["first_ok_fallback_s"] for r in ok)
     paths = "+".join(f"{p} {n}" for p, n in collections.Counter(r["fallback_path"] or "нет" for r in ok).most_common())
-    print(f"| {M[f'{ok[0]['mech']}{ok[0]['interval_s']}']} | {ok[0]['fault']} | {len(ok)} | {paths} | "
+    mech = M[ok[0]["mech"] + ok[0]["interval_s"]]
+    print(f"| {mech} | {ok[0]['fault']} | {len(ok)} | {paths} | "
           f"{fmt(sw) if sw else 'нет за ' + ok[0]['window_s']} | {fmt(num(r['gap_s'] for r in ok)) if sw else '-'} | "
           f"{fmt(num(r['failed_after'] for r in ok)).replace('.0', '')} |")
 print(f"\nстрок всего {sum(map(len, g.values()))}, недействительных {sum(r['valid'] != '1' for v in g.values() for r in v)}, "
