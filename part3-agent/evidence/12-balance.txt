@@ -31,3 +31,4 @@ bal 16.58 18:07:06 after-final-deploy3
 bal 16.56 18:08:52 after-final-repeat3
 bal 16.55 18:10:36 after-interactive3
 bal 16.53 18:14:47 after-isolation3
+bal 16.52 18:17:41 before-archive
