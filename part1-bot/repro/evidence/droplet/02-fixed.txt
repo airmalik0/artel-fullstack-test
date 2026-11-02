@@ -1,0 +1,25 @@
+# После apply на контейнере из состояния «до». Время UTC, 02.11.2026
+2026-11-02T12:01:39Z GREEN @artel_repro_malik_bot, poll_age=0s
+12:01:42 # /ping, отправленный до починки:
+> #43822 [17:01] /ping
+< #43823 [17:01] pong, сообщение ждало 29 с
+12:01:44 UTC -> /start
+< #43825 [17:01] Демо-бот стенда. Команды: /help, /ping, любой текст вернётся эхом.
+12:01:48 UTC конец ожидания
+12:01:48 UTC -> /help
+< #43827 [17:01] /start приветствие
+    /ping проверка
+    текст вернётся эхом
+12:01:53 UTC конец ожидания
+12:01:53 UTC -> /ping
+< #43829 [17:01] pong, сообщение ждало 1 с
+12:01:57 UTC конец ожидания
+12:01:57 UTC -> проверка эха
+< #43831 [17:01] эхо: проверка эха (ждало 1 с)
+12:02:01 UTC конец ожидания
+12:02:01 # процессы:
+1 sleep infinity 
+182 python3 /opt/botfix/supervisor.py 
+184 /usr/local/bin/python3 -u /opt/botfix/relay.py in --listen 1
+189 python3 /opt/botfix/relay.py attach 
+196 /usr/local/bin/python3 -u /opt/botfix/heartbeat.py demo_bot 

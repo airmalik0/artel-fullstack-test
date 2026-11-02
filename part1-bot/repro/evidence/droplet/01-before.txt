@@ -1,0 +1,21 @@
+# Состояние «до», свежий контейнер, снято 12:00:49 UTC 02.11.2026
+$ docker inspect: сеть
+none
+$ readlink /proc/1/exe; cmdline
+/usr/bin/sleep
+sleep infinity 
+$ интерфейсы в состоянии UP
+lo unknown
+$ cat /proc/net/route, строк без заголовка:
+0
+$ getent hosts api.telegram.org
+rc=2
+$ tail -n 1 bot.log
+telegram.error.NetworkError: httpx.ConnectError: [Errno -3] Temporary failure in name resolution
+$ процессы: бот упал, остался зомби, никто не поднял
+1 sleep S (sleeping)
+7 python3 Z (zombie)
+# Сообщение из Telegram до починки
+12:01:09 UTC -> /ping
+(бот ничего не прислал)
+12:01:19 UTC конец ожидания

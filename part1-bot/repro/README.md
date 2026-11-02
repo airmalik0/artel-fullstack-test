@@ -24,21 +24,20 @@
 
 | Симптом на сервере | На стенде | Выдержка |
 |---|---|---|
-| только `lo`, маршрутов нет | `--network none`, 0 маршрутов, `getent` rc=2 | `01-before.txt` |
-| бот не достаёт до Telegram | `NetworkError: ... Temporary failure in name resolution` | `01-before.txt` |
-| PID 1 это `sleep` | `readlink /proc/1/exe` даёт `/usr/bin/sleep` | `01-before.txt` |
-| упавший бот не поднимается, зомби | бот в состоянии `Z`, `/ping` без ответа | `01-before.txt` |
-| вход только снаружи | `docker exec -i` вместо stdio ssh-сессии | `02-apply.txt` |
+| только `lo`, маршрутов нет | `--network none`, 0 маршрутов, `getent` rc=2 | `droplet/01-before.txt` |
+| бот не достаёт до Telegram | `NetworkError: ... Temporary failure in name resolution` | `droplet/01-before.txt` |
+| PID 1 это `sleep` | `readlink /proc/1/exe` даёт `/usr/bin/sleep` | `droplet/01-before.txt` |
+| упавший бот не поднимается, зомби | бот в состоянии `Z`, `/ping` без ответа | `droplet/01-before.txt` |
+| вход только снаружи | `docker exec -i` вместо stdio ssh-сессии | `droplet/02-apply.txt` |
 | пароль бэкапа в скрипте и в аргументах | `-k stand-only-not-a-secret` виден в `/proc/*/cmdline` | `09-backup-rollback.txt` |
-| очередь сбрасывается при старте | та же строка `drop_pending_updates=True` | `07-queue-downtime.txt` |
+| очередь сбрасывается при старте | та же строка `drop_pending_updates=True` | `droplet/07-queue-downtime.txt` |
 
 ## Чем отличается от настоящего сервера
 
-- **Стенд работает в Docker на моём маке, а не на отдельном сервере.** Лимит дроплетов на аккаунте был
-  исчерпан. Контейнер тот же по ограничениям, но внешний конец реле стоит на маке, ядро это виртуалка
-  Docker Desktop, архитектура arm64. Поэтому в `/sys/class/net` видны служебные устройства этого ядра,
-  все они выключены, поднят только `lo`.
-- Вход через `docker exec -i`, а не ssh. Цепочка `--target "ssh ..."` тем же кодом не прогонялась.
+- **Прогоны шли в два этапа.** Сначала Docker на моём маке (arm64, ядро виртуалки Docker Desktop, поэтому
+  в `/sys/class/net` видны служебные устройства, все выключены, поднят только `lo`): выдержки в `evidence/`.
+  Финальный прогон на отдельном сервере DigitalOcean, fra1, amd64: выдержки в `evidence/droplet/`,
+  внешний конец реле там работает под systemd, `stand/botfix-relay.service`.
 - Заглушек `systemctl`, `docker`, `curl` на стенде нет, они ничего не меняют: скрипт их не вызывает.
 - Токен свой и рабочий, тестовый бот @artel_repro_malik_bot. Исходный токен Telegram отвергает, поэтому
   на сервере без нового токена от владельца бот не заработает никакой починкой.
@@ -68,23 +67,26 @@ TLS идёт от бота до Telegram, реле видит только ши�
 
 ## Что показано живьём
 
-Сообщения слал из своего аккаунта тестовому боту, ответы дословные.
+Сообщения слал из своего аккаунта тестовому боту, ответы дословные. Пути от `evidence/`, каталог `droplet/`
+это прогон на сервере. Те же сценарии на маке лежат рядом под теми же именами.
 
 | Сценарий | Результат | Выдержка |
 |---|---|---|
-| до починки | `/ping` без ответа | `01-before.txt` |
-| после `apply` на свежем контейнере | `/start`, `/help`, `/ping`, эхо отвечены, `/ping` из состояния «до» тоже | `02-fixed.txt` |
-| `kill -9` бота | поднят через 1 с, `pong, сообщение ждало 1 с` | `03-kill-bot.txt` |
-| обрыв линии | реле вернулось за 1 с, бот ответил | `04-relay-link-cut.txt` |
-| реле лежит 85 с | healthcheck `RED ... 503 relay link down`, после восстановления `GREEN`, `эхо: сообщение в простое реле (ждало 103 с)` | `05-relay-outage.txt` |
-| неверный токен | `RED getMe 401 Unauthorized: Telegram не принял токен, нужен новый от BotFather` | `06-bad-token.txt` |
-| простой при `True` | сообщение потеряно, следующий `/ping` отвечен | `07-queue-downtime.txt` |
-| простой при `False` | `эхо: простой, drop_pending_updates=False (ждало 27 с)` | `07-queue-downtime.txt` |
-| запрещённые цели | `403 not in allowlist` для example.com, api.deepseek.com, прямого IP, порта 80 | `08-allowlist.txt` |
-| бэкап | в `cmdline` только `-pass file:...`, архив расшифрован, sha файла совпал, чужой пароль `bad decrypt` | `09-backup-rollback.txt` |
-| откат | файлы совпали с исходными по sha256 и правам при фоновом супервизоре и при PID 1 | `09-backup-rollback.txt` |
-| защита файлов состояния | симлинк от uid бота `Permission denied`, контрольный файл цел, перевод строки не дал второй записи журнала | `10-hardening.txt` |
-| перезапуск контейнера | PID 1 стал супервизором, зомби 0, реле вернулось само, бот ответил | `11-restart.txt` |
+| до починки | `/ping` без ответа | `droplet/01-before.txt` |
+| сухой прогон | rc=0, `/opt/botfix` не появился, `.env` не изменился | `droplet/02-apply-dry.txt` |
+| `--apply` на свежем контейнере | rc=0, `/start`, `/help`, `/ping`, эхо отвечены, `/ping` из состояния «до» тоже: `pong, сообщение ждало 29 с` | `droplet/02-apply.txt`, `droplet/02-fixed.txt` |
+| `kill -9` бота | поднят через 1 с, `pong, сообщение ждало 1 с` | `droplet/03-kill-bot.txt` |
+| обрыв линии | реле вернулось за 1 с, бот ответил | `droplet/04-relay-link-cut.txt` |
+| реле лежит 91 с | healthcheck `RED ... 503 relay link down`, после восстановления `GREEN`, `эхо: сообщение в простое реле (ждало 100 с)` | `droplet/05-relay-outage.txt` |
+| неверный токен | `RED getMe 401 Unauthorized: Telegram не принял токен, нужен новый от BotFather` | `droplet/06-bad-token.txt` |
+| простой при `True` | сообщение потеряно, следующий `/ping` отвечен | `droplet/07-queue-downtime.txt` |
+| простой при `False` | `эхо: простой, drop_pending_updates=False (ждало 52 с)` | `droplet/07-queue-downtime.txt` |
+| запрещённые цели | `403 not in allowlist` для example.com, api.deepseek.com, прямого IP, порта 80 | `droplet/08-allowlist.txt` |
+| перезапуск контейнера | PID 1 стал супервизором, `kill -9 1` без эффекта, зомби 0, реле вернулось само, бот ответил | `droplet/11-restart.txt` |
+| внешний конец на другой машине | stdio через настоящий ssh, бот ответил | `droplet/13-ssh-chain.txt` |
+| бэкап (мак) | в `cmdline` только `-pass file:...`, архив расшифрован, sha файла совпал, чужой пароль `bad decrypt` | `09-backup-rollback.txt` |
+| откат (мак) | файлы совпали с исходными по sha256 и правам при фоновом супервизоре и при PID 1 | `09-backup-rollback.txt` |
+| защита файлов состояния (мак) | симлинк от uid бота `Permission denied`, контрольный файл цел, перевод строки не дал второй записи журнала | `10-hardening.txt` |
 
 Найденная по пути проблема: в первом прогоне один ответ потерялся. Обновление бот забрал, в журнале бота
 `TimedOut`, ответа нет, PTB такую отправку не повторяет, а healthcheck в этот момент был зелёным. Прямые
@@ -119,7 +121,7 @@ python3 fix/relay.py out --allow api.telegram.org:443 --allow api.deepseek.com:4
 
 - Без `--allow api.deepseek.com:443` настоящий бот не сможет отвечать через LLM.
 - `ServerAliveInterval` обязателен: своего пинга в реле нет, зависшую сессию ssh обнаружит сам ssh.
-- Внешний процесс надо держать живым на той стороне, на стенде это делал я руками. Подойдёт unit с `Restart=always`.
+- Внешний процесс надо держать живым на той стороне, образец unit лежит в `stand/botfix-relay.service`.
 - Скрипт останавливает `run_prod.py` и бота, чужие реле и демо-бота из `/opt/amigo-demo` не трогает.
 
 ## Что не закрыто

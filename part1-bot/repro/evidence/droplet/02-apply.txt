@@ -1,0 +1,36 @@
+# apply-on-server.sh --apply, rc=0, 12:01:32 UTC
+== проверка цели, режим apply ==
+PID 1: /usr/bin/sleep
+маршрутов: 0, интерфейсы: lo 
+python 3.12.16 ptb 21.11.1
+есть /opt/bots/demo/.env
+есть /usr/local/sbin/demo-backup.sh
+есть /entrypoint.sh
+== 1. файлы починки в /opt/botfix ==
++ mkdir -p /opt/botfix /etc/botfix /run/botfix
+настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот demo_bot, uid 10001
+== 2. /opt/bots/demo/.env: только ключи, значения не печатаю ==
++ cp -a /opt/bots/demo/.env /opt/bots/demo/.env.bak-20261102T120128Z
++ chmod 600 /opt/bots/demo/.env.bak-20261102T120128Z
++ HTTPS_PROXY=http://127.0.0.1:18190
++ BOT_TOKEN заменён
+== 3. очередь сообщений не сбрасывается при старте ==
++ cp -a /opt/bots/demo/demo_bot.py /opt/bots/demo/demo_bot.py.bak-20261102T120128Z
++ chmod 600 /opt/bots/demo/demo_bot.py.bak-20261102T120128Z
++ sed -i s/drop_pending_updates=True/drop_pending_updates=False/ /opt/bots/demo/demo_bot.py
+== 4. пароль бэкапа в файл 600 ==
++ cp -a /usr/local/sbin/demo-backup.sh /usr/local/sbin/demo-backup.sh.bak-20261102T120128Z
++ chmod 600 /usr/local/sbin/demo-backup.sh.bak-20261102T120128Z
+новый пароль в /etc/botfix/backup.pass, старый в /etc/botfix/backup.pass.old, /usr/local/sbin/demo-backup.sh вызывает /opt/botfix/backup.sh
+== 5. супервизор из entrypoint ==
++ cp -a /entrypoint.sh /entrypoint.sh.bak-20261102T120128Z
++ chmod 600 /entrypoint.sh.bak-20261102T120128Z
++ sed -i -e /^# bot-start/,/^# bot-end/d -e s|^exec .*sleep infinity$|exec python3 /opt/botfix/supervisor.py| /entrypoint.sh
+== 6. запуск ==
+старые процессы бота: нет
++ setsid python3 /opt/botfix/supervisor.py
+откат: bash /var/log/botfix/rollback-20261102T120128Z.sh, журнал: /var/log/botfix/apply-20261102T120128Z.log
+2026-11-02T12:01:32Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, опроса ещё не было
+
+Внешний конец реле запускается на машине с сетью:
+  python3 fix/relay.py out --allow api.telegram.org:443 --journal relay-out.log -- ssh root@<стенд> docker exec -i artel-stand python3 /opt/botfix/relay.py attach

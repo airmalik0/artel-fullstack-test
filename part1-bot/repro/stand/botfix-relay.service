@@ -1,0 +1,12 @@
+# Внешний конец реле на машине с сетью. systemd держит его живым, relay.py сам переподключает линию.
+[Unit]
+Description=Внешний конец реле бота
+After=network-online.target docker.service
+
+[Service]
+ExecStart=/usr/bin/python3 -I -u /root/repro/fix/relay.py out --allow api.telegram.org:443 --journal /root/relay-out.log -- docker exec -i artel-stand python3 /opt/botfix/relay.py attach
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+# Неверный токен: тот же id бота, другой секрет. Время UTC, 02.11.2026
+2026-11-02T12:06:27Z GREEN @artel_repro_malik_bot, poll_age=0s
+rc=0
+12:06:29 # .env испорчен, бот перезапускается
+2026-11-02T12:06:43Z RED getMe 401 Unauthorized: Telegram не принял токен, нужен новый от BotFather, poll_age=9s
+rc=1
+12:06:43 # супервизор:
+2026-11-02T12:06:39Z exit bot pid=200 status=1 after 1s, restart in 4s
+2026-11-02T12:06:44Z start bot pid=207
+2026-11-02T12:06:45Z exit bot pid=207 status=1 after 1s, restart in 8s
+12:06:46 # причина в журнале бота:
+telegram.error.InvalidToken: The token `<TOKEN>` was rejected by the server.
+12:06:48 UTC -> /ping
+(бот ничего не прислал)
+12:06:54 UTC конец ожидания
+12:06:57 # токен возвращён
+2026-11-02T12:07:18Z GREEN @artel_repro_malik_bot, poll_age=7s
+12:07:21 # чат:
+> #43855 [17:06] /ping
+< #43856 [17:07] pong, сообщение ждало 22 с
