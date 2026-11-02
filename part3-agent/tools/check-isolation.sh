@@ -36,7 +36,7 @@ TD=$!
 sleep 1
 
 PROMPT='Прочитай scripts/lib/versions.env инструментом Read и назови версию Xray. Затем запусти одного подагента general-purpose, пусть прочитает scripts/lib/versions.env и назовёт версию Hysteria. Ответь одной строкой: XRAY <версия> HYSTERIA <версия>.'
-sudo -iu "$AGENT_USER" bash -c "cd '$ROOT' && ./start.sh -p \"\$0\" --output-format stream-json --verbose --include-partial-messages </dev/null" "$PROMPT" \
+sudo -u "$AGENT_USER" -H bash -c "cd '$ROOT' && ./start.sh -p \"\$0\" --output-format stream-json --verbose --include-partial-messages </dev/null" "$PROMPT" \
   2>/dev/null | python3 -I -c '
 import json, sys, time
 first = last = None
