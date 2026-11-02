@@ -47,7 +47,7 @@ def main():
     state = detail
     max_age = int(conf.get("MAX_POLL_AGE", 60))
     try:
-        age = int(time.time() - os.stat(conf["POLL_FILE"]).st_mtime)
+        age = int(time.time() - os.lstat(conf["POLL_FILE"]).st_mtime)
         age_text = f"poll_age={age}s"
     except OSError:
         age, age_text = None, "опроса ещё не было"

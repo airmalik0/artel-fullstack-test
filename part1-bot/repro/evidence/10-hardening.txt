@@ -1,0 +1,34 @@
+# Пробы по находкам проверки. Время UTC, 02.11.2026
+## 1-2. Симлинк от uid бота вместо файлов состояния
+3862f5361ca1a8c0
+2026-11-02 11:39:22.342590008 +0000 7
+$ (uid 10001) ln -sf /etc/canary /run/botfix/supervisor.pid
+ln: failed to create symbolic link '/run/botfix/supervisor.pid': Permission denied
+$ (uid 10001) ln -sf /etc/canary /run/botfix/health.last
+ln: failed to create symbolic link '/run/botfix/health.last': Permission denied
+$ (uid 10001) ln -sf /etc/canary /run/botfix/health.out
+ln: failed to create symbolic link '/run/botfix/health.out': Permission denied
+$ (uid 10001) ln -sf /etc/canary /run/botfix/backup.out
+ln: failed to create symbolic link '/run/botfix/backup.out': Permission denied
+$ (uid 10001) ln -sf /etc/canary /run/botfix/bot/last_poll
+rc=0 (свой подкаталог бота, root туда не пишет)
+2026-11-02T11:39:23Z GREEN @artel_repro_malik_bot, poll_age=0s
+11:39:23 # жду два цикла health от супервизора
+3862f5361ca1a8c0
+2026-11-02 11:39:22.342590008 +0000 7
+-rw-r--r-- 1 root root 112 Nov  2 11:40 
+2026-11-02T11:40:25Z RED getMe @artel_repro_malik_bot отвечает, но б�
+$ (uid 10001) ls /var/log/botfix
+ls: cannot open directory '/var/log/botfix': Permission denied
+## контроль: прежняя раскладка, каталог отдан боту, запись root проходит через симлинк
+2e7f1f7a9dd3f827
+80aa948acc9fd086
+## 3. Цель с переводом строки и слишком длинная цель
+строк журнала до:       23
+b'evil.example:443\n2026-11-02T00:00:00Z' len 37 -> HTTP/1.1 403 not in allowlist
+b'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' len 304 -> HTTP/1.1 400 target too long
+новые строки deny, cat -vet:
+2026-11-02T11:40:28Z deny sid=17 evil.example:443_2026-11-02T00:00:00Z$
+2026-11-02T11:40:28Z deny sid=18 target too long, 304 bytes$
+deny за пробу: 2, строк с поддельной датой в начале: 0
+2026-11-02T11:40:37Z GREEN @artel_repro_malik_bot, poll_age=1s

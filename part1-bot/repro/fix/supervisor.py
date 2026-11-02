@@ -7,6 +7,7 @@
 import contextlib
 import os
 import pathlib
+import shutil
 import signal
 import subprocess
 import sys
@@ -29,7 +30,8 @@ def read_env(path):
 
 conf = read_env(CONF)
 LOG_DIR = pathlib.Path(conf["LOG_DIR"])
-STATE_DIR = pathlib.Path(conf["STATE_DIR"])
+STATE_DIR = pathlib.Path(conf["STATE_DIR"])  # root:root, туда пишет только root
+BOT_RUN = STATE_DIR / "bot"  # единственное, что отдано uid бота: last_poll и link.sock
 UID = int(conf["BOT_UID"])
 running = {}  # pid -> имя
 
@@ -51,7 +53,7 @@ def spawn(name, argv, cwd=None, env=None, uid=None):
 
 def start_relay():
     spawn("relay-in", [PY, "-u", f"{FIX}/relay.py", "in", "--listen", conf["RELAY_LISTEN"],
-                       "--link", f"{STATE_DIR}/link.sock"], uid=UID)
+                       "--link", f"{BOT_RUN}/link.sock"], uid=UID)
 
 
 def start_bot():
@@ -79,9 +81,10 @@ def stop(*_):
 def main():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    os.chown(STATE_DIR, UID, UID)
-    pathlib.Path(STATE_DIR, "link.sock").unlink(missing_ok=True)
+    shutil.rmtree(STATE_DIR, ignore_errors=True)  # состояние прошлого запуска не наследуем
+    STATE_DIR.mkdir(mode=0o755, parents=True)
+    BOT_RUN.mkdir(mode=0o700)
+    os.chown(BOT_RUN, UID, UID)
     pathlib.Path(STATE_DIR, "supervisor.pid").write_text(str(os.getpid()))
 
     now = time.monotonic()

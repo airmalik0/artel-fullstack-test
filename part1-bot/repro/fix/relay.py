@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Реле для контейнера без сети. Только стандартная библиотека.
 
-  relay.py in --listen 127.0.0.1:18190 --link /run/botfix/link.sock
+  relay.py in --listen 127.0.0.1:18190 --link /run/botfix/bot/link.sock
       Внутри контейнера, под супервизором. HTTP CONNECT для бота.
       Если внешней стороны нет, сразу отвечает 503.
-  relay.py attach --link /run/botfix/link.sock
+  relay.py attach --link /run/botfix/bot/link.sock
       Внутри контейнера, запускается снаружи через ssh или docker exec -i.
       Соединяет свой stdin/stdout с сокетом link.
   relay.py out --allow api.telegram.org:443 --journal FILE -- КОМАНДА...
@@ -16,6 +16,7 @@ TLS идёт от бота до Telegram, реле видит только ши�
 """
 import argparse
 import asyncio
+import re
 import socket
 import struct
 import sys
@@ -27,6 +28,8 @@ HDR = struct.Struct("!IBI")
 CHUNK = 65536
 MAX_FRAME = 1 << 20
 CONNECT_TIMEOUT = 15
+MAX_TARGET = 261  # 255 на имя, двоеточие, 5 на порт
+UNSAFE = re.compile(r"[^A-Za-z0-9.:-]")
 
 
 def log(journal, msg):
@@ -160,11 +163,14 @@ class Outer:
         self.allow = allow
         self.journal = journal
         self.streams = {}
+        self.drain_lock = None
 
     async def open_stream(self, link, sid, target):
         host, port = target.rsplit(":", 1)
         try:
-            r, w = await asyncio.wait_for(asyncio.open_connection(host, int(port)), CONNECT_TIMEOUT)
+            # Один недоступный адрес не должен стоить запроса: адреса пробуются внахлёст.
+            r, w = await asyncio.wait_for(
+                asyncio.open_connection(host, int(port), happy_eyeballs_delay=0.25), CONNECT_TIMEOUT)
         except (OSError, asyncio.TimeoutError) as e:
             log(self.journal, f"fail sid={sid} {target} {type(e).__name__}")
             send_frame(link, sid, OPENED, b"502 upstream connect failed")
@@ -177,7 +183,8 @@ class Outer:
             while chunk := await r.read(CHUNK):
                 stream["down"] += len(chunk)
                 send_frame(link, sid, DATA, chunk)
-                await link.drain()
+                async with self.drain_lock:  # до Python 3.11 два drain разом падают
+                    await link.drain()
         except (ConnectionError, OSError):
             pass
         self.close_stream(sid)
@@ -195,19 +202,24 @@ class Outer:
         proc = await asyncio.create_subprocess_exec(
             *argv, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, limit=CHUNK * 4)
         link = proc.stdin
+        self.drain_lock = asyncio.Lock()
         log(self.journal, f"link up pid={proc.pid}")
         tasks = set()
         try:
             while True:
                 sid, kind, data = await read_frame(proc.stdout)
-                if kind == OPEN:
+                if kind == OPEN and len(data) > MAX_TARGET:
+                    log(self.journal, f"deny sid={sid} target too long, {len(data)} bytes")
+                    send_frame(link, sid, OPENED, b"400 target too long")
+                elif kind == OPEN:
                     target = data.decode("ascii", "replace")
                     if target in self.allow:
                         task = asyncio.create_task(self.open_stream(link, sid, target))
                         tasks.add(task)
                         task.add_done_callback(tasks.discard)
                     else:
-                        log(self.journal, f"deny sid={sid} {target}")
+                        # Цель пришла из контейнера: перевод строки подделал бы запись журнала.
+                        log(self.journal, f"deny sid={sid} {UNSAFE.sub('_', target)}")
                         send_frame(link, sid, OPENED, b"403 not in allowlist")
                 elif kind == DATA and sid in self.streams:
                     stream = self.streams[sid]
@@ -255,9 +267,9 @@ def main():
     sub = p.add_subparsers(dest="mode", required=True)
     a = sub.add_parser("in")
     a.add_argument("--listen", default="127.0.0.1:18190")
-    a.add_argument("--link", default="/run/botfix/link.sock")
+    a.add_argument("--link", default="/run/botfix/bot/link.sock")
     a = sub.add_parser("attach")
-    a.add_argument("--link", default="/run/botfix/link.sock")
+    a.add_argument("--link", default="/run/botfix/bot/link.sock")
     a = sub.add_parser("out")
     a.add_argument("--allow", action="append", required=True)
     a.add_argument("--journal")
