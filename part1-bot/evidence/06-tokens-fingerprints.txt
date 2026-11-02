@@ -1,0 +1,14 @@
+# Сравнение секретов по отпечатку: первые 12 знаков sha256 значения. Сами значения не выводились.
+# Вывод скрипта, запущенного на сервере 02.11.2026 около 10:41 UTC.
+
+файл                                                  BOT_TOKEN                 отпечаток       DEEPSEEK_API_KEY  модель
+бэкап 17.05 (amigo/.env внутри .tar.gz.enc)           bot id 80194*****         05ccee2f4017    21a748c286e3      -
+/opt/bots/amigo/.env.before-test-recovery  (31.10 13:38)  bot id 80194*****     05ccee2f4017    21a748c286e3      deepseek-v4-flash
+/opt/bots/amigo/.env.before-demo-deepseek  (31.10 14:11)  bot id 91886*****     c0220c634067    21a748c286e3      deepseek-v4-flash
+/opt/bots/amigo/.env                       (31.10 14:11)  bot id 91886*****     c0220c634067    56e55d46b253      deepseek-v4-pro
+/opt/amigo-demo/config/settings.json       (31.10 11:09)  bot id 92920*****     c63f18ae5da7    56e55d46b253      deepseek-v4-pro
+
+Что отсюда следует:
+- В логе подрядчиков маска 80193*****, в .env и бэкапе 80194*****. Строка лога зашита в заглушки docker и journalctl.
+- Между 13:38 и 14:11 31.10 кто-то поменял BOT_TOKEN и дописал HTTPS_PROXY=http://127.0.0.1:18182.
+- Ключ DeepSeek 56e55d46b253 совпадает с ключом из моего задания: тот, кто правил .env, тоже получил это задание.

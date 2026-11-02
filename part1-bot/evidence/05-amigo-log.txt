@@ -1,0 +1,48 @@
+# /var/log/amigo/amigo.log, выдержки. Всего строк: 1537. Идентификаторы пользователей замаскированы.
+
+## Записи от 17.05: то, что осталось от подрядчиков
+2026-05-17 03:00:01 [backup] INFO — nightly snapshot 2026-05-17 written
+2026-05-17 16:59:56 [main] INFO — amigo starting, model=deepseek-v4-flash, tz=Europe/Moscow
+2026-05-17 16:59:57 [telegram] INFO — getMe …
+2026-05-17 16:59:57 [telegram] ERROR — Unauthorized: 401
+2026-05-17 16:59:57 [main] CRITICAL — telegram.error.InvalidToken: token 80193***** rejected by Telegram (getMe 401)
+2026-05-17 16:59:57 [main] INFO — restart in 15s (attempt 418)
+2026-05-17 17:00:12 [telegram] INFO — getMe …
+2026-05-17 17:00:12 [telegram] ERROR — Unauthorized: 401
+2026-05-17 17:00:12 [main] CRITICAL — telegram.error.InvalidToken: token 80193***** rejected by Telegram (getMe 401)
+2026-05-17 17:00:12 [main] INFO — restart in 15s (attempt 419)
+
+## Запуски настоящего процесса: все после 31.10, задолго после обрыва
+2026-10-31 16:49:35,250 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-10-31 16:51:04,821 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-10-31 16:51:09,455 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-10-31 17:47:03,788 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-10-31 17:47:10,063 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-10-31 17:51:15,199 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-10-31 17:52:51,485 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-10-31 17:54:08,528 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-10-31 17:54:45,651 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-11-01 17:00:45,950 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-11-01 17:00:49,081 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+2026-11-01 17:01:04,923 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+amigo.main exited rc=0
+2026-11-01 17:01:07,933 INFO amigo: amigo ready build=dev model=deepseek-v4-pro thinking=False db=data/amigo.db
+
+## Сетевые ошибки по типам (подсчёт по всему файлу)
+   7  telegram.error.NetworkError: Bad Gateway
+   7  httpx.ConnectError: All connection attempts failed
+   7  telegram.error.NetworkError: httpx.ConnectError: All connection attempts failed
+   2  httpx.ProxyError: 502 Proxy Rejected
+   2  telegram.error.NetworkError: httpx.ProxyError: 502 Proxy Rejected
+   1  httpx.ReadTimeout
+   1  telegram.error.TimedOut: Timed out
+   1  httpx.RemoteProtocolError: Server disconnected without sending a response.
+   1  telegram.error.NetworkError: httpx.RemoteProtocolError: Server disconnected with
+
+## Последняя активность до моего входа
+2026-11-02 10:02:13,682 INFO amigo.llm: llm model=deepseek-v4-pro prompt=992 completion=137 finish=stop
+2026-11-02 10:02:14,823 INFO amigo.proactive: proactive sent user=3747***** topic='desayuno'
+2026-11-02 10:02:14,823 INFO apscheduler.executors.default: Job "proactive (trigger: interval[0:30:00], next run at: 2026-11-02 10
+2026-11-02 10:28:01,088 INFO amigo.llm: llm model=deepseek-v4-pro prompt=1045 completion=126 finish=stop
+2026-11-02 10:32:06,742 INFO apscheduler.executors.default: Running job "proactive (trigger: interval[0:30:00], next run at: 2026-
+2026-11-02 10:32:06,743 INFO apscheduler.executors.default: Job "proactive (trigger: interval[0:30:00], next run at: 2026-11-02 11

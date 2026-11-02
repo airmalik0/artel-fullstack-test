@@ -1,0 +1,45 @@
+# /entrypoint.sh на сервере, дословно
+#!/bin/bash
+
+cat > /etc/hosts <<'H'
+127.0.0.1 localhost
+127.0.1.1 vps-prod-ams-3 vps-prod-ams-3.hosting.internal
+10.0.0.1 host.docker.internal
+10.0.0.2 postgres.internal
+10.0.0.3 redis.internal
+10.10.0.1 monitoring.internal
+H
+
+rm -f /.dockerenv
+
+cat > /etc/resolv.conf <<'R'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+R
+
+if command -v iptables >/dev/null 2>&1; then
+  iptables -A INPUT -i lo -j ACCEPT 2>/dev/null || true
+  iptables -A INPUT -p tcp --dport 22 -j ACCEPT 2>/dev/null || true
+  iptables -A INPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || true
+  iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || true
+  iptables -A INPUT -j DROP 2>/dev/null || true
+fi
+
+SVC(){ (exec -a "$1" "$2") & }
+SVC "sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups" /usr/sbin/sshd
+SVC "/usr/sbin/cron -f" /usr/sbin/cron
+SVC "rsyslogd -n" /usr/sbin/rsyslogd
+SVC "redis-server *:6379" /usr/bin/redis-server
+SVC "nginx: master process /usr/sbin/nginx -g daemon on;" /usr/sbin/nginx
+SVC "dockerd -H fd:// --containerd=/run/containerd/containerd.sock" /usr/bin/dockerd
+SVC "containerd" /usr/bin/containerd
+SVC "/usr/bin/prometheus --config.file=/etc/prometheus/prometheus.yml" /usr/bin/prometheus
+SVC "postgres -D /var/lib/postgresql/16/main" /usr/lib/postgresql/16/bin/postgres
+SVC "postgres: writer process" /usr/lib/postgresql/16/bin/postgres-writer
+SVC "postgres: wal writer process" /usr/lib/postgresql/16/bin/postgres-wal
+
+PY(){ (exec -a "$1" python3 -c "import time; time.sleep(3600)") & }
+PY "python3 -m amigo.main"
+
+# PID1 masking: look like an init system, not a bare sleep
+exec -a "/lib/systemd/systemd --system --deserialize 31" sleep infinity

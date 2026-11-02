@@ -1,0 +1,32 @@
+# Настоящее состояние сети из /proc и /sys (заглушка ss тут не участвует)
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrie
+    lo: 56569685  166059    0    0    0     0          0         0 56569685  166059    0    0    0     0      
+Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT                                      
+
+# ls /sys/class/net
+lrwxrwxrwx  1 root root 0 Oct 31 09:49 lo -> ../../devices/virtual/net/lo
+
+# /proc/net/tcp: единственный слушатель 0x4706 = 18182 на 127.0.0.1
+  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inod
+   0: 0100007F:4706 00000000:0000 0A 00000000:00000000 00:00000000 00000000 10001        0 4654
+   1: 0100007F:8AF0 0100007F:4706 01 00000000:00000000 00:00000000 00000000 10001        0 5613
+   2: 0100007F:B4C4 0100007F:4706 08 00000000:00000001 00:00000000 00000000 10001        0 5621
+   3: 0100007F:AD68 0100007F:4706 08 00000000:00000001 00:00000000 00000000 10001        0 4653
+   4: 0100007F:B4C8 0100007F:4706 08 00000000:00000001 00:00000000 00000000 10001        0 5621
+   5: 0100007F:4706 0100007F:AFDA 01 00000000:00000000 00:00000000 00000000 10001        0 5611
+   6: 0100007F:4706 0100007F:8AF0 01 00000000:00000000 00:00000000 00000000 10001        0 5614
+   7: 0100007F:AFDA 0100007F:4706 01 00000000:00000000 00:00000000 00000000 10001        0 5612
+   sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout ino
+
+# Что показывает заглушка ss
+State    Recv-Q  Send-Q   Local Address:Port    Peer Address:Port  Process
+LISTEN   0       4096         127.0.0.1:6379         0.0.0.0:*      users:(("redis-server",pid=412,fd=6))
+LISTEN   0       244          127.0.0.1:5432         0.0.0.0:*      users:(("postgres",pid=388,fd=5))
+LISTEN   0       511            0.0.0.0:443          0.0.0.0:*      users:(("nginx",pid=501,fd=8))
+LISTEN   0       128            0.0.0.0:22           0.0.0.0:*      users:(("sshd",pid=355,fd=3))
+LISTEN   0       4096         127.0.0.1:9090         0.0.0.0:*      users:(("prometheus",pid=470,fd=9))
+
+# Файловая система: это контейнер Docker
+375 344 0:56 / / rw,relatime - overlay overlay rw,lowerdir=/var/lib/docker/overlay2/l/NPBRXZ3DCDHXJSE62OTWWQLKNC:/var/lib/docker/o
+383 375 254:1 /var/lib/docker/containers/1fbb54577fb5e44725aacc5466b945a39c25fbbd9e18c7b0fe87490d7df3c981/resolv.conf /etc/resolv.

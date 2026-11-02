@@ -1,0 +1,56 @@
+# Команды /usr/local/bin с датой 5 октября: заглушки поверх настоящих утилит
+-rwxr-xr-x 1 root root   549 Oct  5 14:33 amigo-healthcheck
+-rwxr-xr-x 1 root root 14496 Oct  5 14:33 curl
+-rwxr-xr-x 1 root root   536 Oct  5 14:33 df
+-rwxr-xr-x 1 root root    79 Oct  5 14:33 dig
+-rwxr-xr-x 1 root root 18704 Oct  5 14:33 docker
+-rwxr-xr-x 1 root root   229 Oct  5 14:33 free
+-rwxr-xr-x 1 root root    79 Oct  5 14:33 host
+-rwxr-xr-x 1 root root 14560 Oct  5 14:33 journalctl
+-rwxr-xr-x 1 root root   355 Oct  5 14:33 last
+-rwxr-xr-x 1 root root   608 Oct  5 14:33 netstat
+-rwxr-xr-x 1 root root    79 Oct  5 14:33 nslookup
+-rwxr-xr-x 1 root root    64 Oct  5 14:33 ping
+-rwxr-xr-x 1 root root   608 Oct  5 14:33 ss
+-rwxr-xr-x 1 root root 14504 Oct  5 14:33 systemctl
+-rwxr-xr-x 1 root root   237 Oct  5 14:33 w
+-rwxr-xr-x 1 root root    74 Oct  5 14:33 wget
+-rwxr-xr-x 1 root root    74 Oct  5 14:33 who
+
+# Примеры заглушек: вывод зашит в скрипт
+### ping
+#!/bin/bash
+echo "ping: connect: Network is unreachable"
+exit 1
+### wget
+#!/bin/bash
+echo "wget: unable to resolve host address '${@: -1}'"
+exit 4
+### ss
+#!/bin/bash
+cat <<'O'
+State    Recv-Q  Send-Q   Local Address:Port    Peer Address:Port  Process
+LISTEN   0       4096         127.0.0.1:6379         0.0.0.0:*      users:(("redis-server",pid=412,fd=6))
+LISTEN   0       244          127.0.0.1:5432         0.0.0.0:*      users:(("postgres",pid=388,fd=5))
+LISTEN   0       511            0.0.0.0:443          0.0.0.0:*      users:(("nginx",pid=501,fd=8))
+LISTEN   0       128            0.0.0.0:22           0.0.0.0:*      users:(("sshd",pid=355,fd=3))
+LISTEN   0       4096         127.0.0.1:9090         0.0.0.0:*      users:(("prometheus",pid=470,fd=9))
+O
+
+# /usr/bin/dockerd, /usr/bin/containerd, /usr/sbin/cron, /usr/sbin/sshd: 14480 байт, бинарники-заглушки
+-rwxr-xr-x 1 root root 14480 Oct  5 14:33 /usr/bin/containerd
+-rwxr-xr-x 1 root root 14480 Oct  5 14:33 /usr/bin/dockerd
+-rwxr-xr-x 1 root root 14480 Oct  5 14:33 /usr/sbin/cron
+-rwxr-xr-x 1 root root 14480 Oct  5 14:33 /usr/sbin/rsyslogd
+-rwxr-xr-x 1 root root 14480 Oct  5 14:33 /usr/sbin/sshd
+
+# PID 1: в ps выглядит как systemd, настоящий исполняемый файл sleep
+--- PID 1
+/usr/bin/sleep
+/lib/systemd/systemd --system --deserialize 31 infinity 
+Name:	sleep
+State:	S (sleeping)
+PPid:	0
+Uid:	0	0	0	0
+NSpid:	1
+/var/backups

@@ -1,0 +1,19 @@
+# Выдержка из /root/.bash_history (файл обновлён 31.10 10:11): кто-то уже шёл этим путём до меня
+
+getent hosts api.telegram.org
+getent hosts google.com
+ls -la /sys/class/net/
+readlink /proc/1/ns/net
+cat /proc/net/route
+readlink /proc/1/exe
+ls -l /var/run/docker.sock /run/docker.sock 2>&1
+file /usr/local/bin/docker /usr/bin/dockerd /usr/bin/containerd
+test -S /var/run/docker.sock && echo "Socket exists" || echo "Socket missing"
+getent hosts api.deepseek.com
+set -euo pipefail
+WORK=/root/amigo-recovery
+install -d -m 700 "$WORK"
+BACKUP_PASS="$(sed -n 's/^PASS="\([^"]*\)".*/\1/p' /usr/local/sbin/amigo-backup.sh)"
+openssl enc -d -aes-256-cbc -pbkdf2 -salt   -in /var/backups/amigo/amigo-src-2026-05-17.tar.gz.enc   -out "$WORK/archive.tar.gz"   -pass env:BACKUP_PA
+tar -tzf "$WORK/archive.tar.gz"
+echo "=== 1. Что на самом деле представляет собой systemctl ==="

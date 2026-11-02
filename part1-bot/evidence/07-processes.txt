@@ -1,0 +1,28 @@
+# ps на момент входа, 02.11.2026 10:37-10:46 UTC. Отбор настоящих процессов бота и чужих сессий.
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root     1648946  0.0  0.1   4744  4012 pts/9    Ss+  09:27   0:00 bash -l
+10001     930533  0.0  3.8 233892 77184 ?        Ssl  Nov01   0:29 python3 -I -u /opt/amigo-demo/run_demo
+10001     930474  0.0  1.1 474636 23372 ?        Ssl  Nov01   0:27 python3 -I -u /opt/amigo-demo/ssh_api_
+root      911034  0.0  0.1   4744  4032 pts/8    Ss+  Nov01   0:00 bash -l
+root      786315  0.0  0.1   4744  4024 pts/7    Ss+  Nov01   0:00 bash -l
+root      616192  0.0  0.2   4744  4072 pts/5    Ss+  Nov01   0:00 bash -l
+root      129611  0.0  0.5  11740 11076 pts/6    Ss   Oct31   0:07 bash -l
+root       45458  0.0  0.1   4752  3900 pts/2    Ss+  Oct31   0:00 bash -l
+root        2365  0.0  0.1   4752  3984 pts/4    Ss+  Oct31   0:00 bash -l
+root         954  0.2  0.1   4488  3400 ?        Ss   Oct31   7:52 bash -lc while true; do sleep 1;head -
+root         945  0.0  0.1   4752  3892 pts/3    Ss+  Oct31   0:00 bash -l
+root         750  0.0  0.1   4752  3944 pts/0    Ss+  Oct27   0:00 bash -l
+root         164  0.0  0.1   4752  3924 pts/1    Ss+  Oct06   0:00 bash -l
+root          26  0.0  0.0      0     0 ?        Z    Oct05   0:00 [python3] <defunct>
+10001     279372  0.0  0.0      0     0 ?        Zs   Oct31   0:04 [python3] <defunct>
+10001     360588  0.0  0.0      0     0 ?        Zs   Oct31   0:01 [python3] <defunct>
+10001     361455  0.0  0.0      0     0 ?        Zs   Oct31   0:00 [python3] <defunct>
+10001     361457  0.0  0.0      0     0 ?        Z    Oct31   0:03 [python3] <defunct>
+10001     391373  0.0  0.0      0     0 ?        Zs   Oct31   0:00 [python3] <defunct>
+10001     391435  0.0  0.0      0     0 ?        Z    Oct31   0:01 [python3] <defunct>
+10001     395896  0.0  0.0      0     0 ?        Zs   Oct31   0:00 [python3] <defunct>
+10001     395929  0.0  0.0      0     0 ?        Z    Oct31   0:01 [python3] <defunct>
+10001     398507  0.0  0.0      0     0 ?        Zs   Oct31   0:00 [python3] <defunct>
+10001    1129506  0.0  0.0      0     0 ?        Zs   Nov01   0:00 [python3] <defunct>
+10001    1129697  0.0  0.7  18916 14884 ?        Ss   Nov01   0:00 /usr/local/bin/python3 -B /opt/bots/am
+10001    1129698  0.0  4.5 247712 92584 ?        Sl   Nov01   0:22  \_ /usr/local/bin/python3 -B -u -m am

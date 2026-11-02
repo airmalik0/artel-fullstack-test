@@ -1,0 +1,11 @@
+# Вызовы Bot API с самого сервера, 02.11.2026 около 10:45 UTC. Токен читался из файла, в вывод не попадал.
+# prod = BOT_TOKEN из /opt/bots/amigo/.env на момент входа
+# orig = BOT_TOKEN из .env.before-test-recovery, он же в зашифрованном бэкапе от 17.05
+
+prod getMe HTTP 200 {"ok":true,"result":{"id":9188600070,"is_bot":true,"first_name":"Amigo","username":"amigo_md_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false,"supports_guest_queries":false,"can_connect_to_business":false,"has_main_web_app":false,"has_topics_enabled":false,"allows_users_to_create_topics":false,"can_manage_bots":false,"supports_join_request_queries":false}}
+prod getWebhookInfo HTTP 200 {"ok":true,"result":{"url":"","has_custom_certificate":false,"pending_update_count":0,"allowed_updates":[...]}}
+prod getMyCommands HTTP 200 (первые 6 из 7, вывод пробы был обрезан): /charla: беседа: выбрать тему; /tarea: маленькое задание; /nivel: уровень (с нуля … свободно); /racha: очки и серия дней; /primero: писать ли мне первым; /reset: начать историю заново
+prod getMyDescription HTTP 200 {"ok":true,"result":{"description":""}}
+prod getMyShortDescription HTTP 200 {"ok":true,"result":{"short_description":""}}
+orig getMe HTTP 401 {"ok":false,"error_code":401,"description":"Unauthorized"}
+orig getWebhookInfo HTTP 401 {"ok":false,"error_code":401,"description":"Unauthorized"}
