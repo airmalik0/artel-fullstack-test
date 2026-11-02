@@ -1,0 +1,31 @@
+# Состояние «до»: docker run --network none, снято 11:30:15 UTC 02.11.2026
+$ readlink /proc/1/exe; cat /proc/1/cmdline
+/usr/bin/sleep
+sleep infinity 
+$ ls /sys/class/net; cat /proc/net/route
+bonding_masters
+erspan0
+gre0
+gretap0
+ip6_vti0
+ip6gre0
+ip6tnl0
+ip_vti0
+lo
+sit0
+tunl0
+Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT                                                       
+$ getent hosts api.telegram.org; echo rc=$?
+rc=2
+$ tail -3 /var/log/demo/bot.log (обрезано до 150 знаков)
+  File "/usr/local/lib/python3.12/site-packages/telegram/request/_httpxrequest.py", line 317, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno -3] Temporary failure in name resolution
+$ ps: бот упал, остался зомби, никто не поднял
+1 sleep S (sleeping)
+45 sh S (sleeping)
+7 python3 Z (zombie)
+# Бот до починки: сообщение из Telegram без ответа
+11:30:27 UTC -> /ping
+(бот ничего не прислал)
+11:30:39 UTC конец ожидания
