@@ -36,7 +36,7 @@ evidence/               выдержки логов живых прогонов,
 1. Хост агента. Установка занимает около минуты:
 
 ```
-scp artel-agent.tar.gz root@<хост-агента>:/root/
+scp artel-agent.tar.gz root@<хост-агента>:/root/   # архив из релиза репозитория или ./build-archive.sh <каталог>
 ssh root@<хост-агента>
 tar -xzf artel-agent.tar.gz
 part3-agent/tools/bootstrap-agent-host.sh

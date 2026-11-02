@@ -3,7 +3,7 @@
 # запроса через новый узел по Reality и по Hysteria2. Клиент: мак, бинарники тех же версий в $BIN.
 # run.sh <повторов> <out.csv>. Дроплет artel-p2-replace-N удаляется по id сразу после повтора.
 set -euo pipefail
-N=$1; OUT=$2; BIN="${BIN:-$HOME/Projects/artel-test-work/part2/bin}"
+N=$1; OUT=$2; BIN="${BIN:-$HOME/artel-lab/bin}"
 export DIGITALOCEAN_ACCESS_TOKEN="$(cat ~/.config/do-token)"
 echo "rep,created_s,reality_ok_s,hy2_ok_s,droplet_id" > "$OUT"
 for r in $(seq 1 "$N"); do

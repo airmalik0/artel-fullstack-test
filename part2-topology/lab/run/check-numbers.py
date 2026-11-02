@@ -66,7 +66,7 @@ cur = [r for r in fo if r["case"] == "urltest15_model_curtain" and r["valid"] ==
 if any(r["first_ok_fallback_s"] for r in cur) or len(cur) != 10: bad += 1; print("РАСХОЖДЕНИЕ urltest на занавесе")
 ru = collections.Counter((r["proto"], r["target"]) for r in csv.DictReader(open(f"{R}/ruhost-hy2.csv")) if r["complete_1m"] == "1")
 has(f"на этом адресе {ru[('hy2', 'ruhost')]} из 20, на обычном адресе {ru[('hy2', 'foreign')]} из 5, у `hy2-obfs` вне хостинга {ru[('hy2-obfs', 'ruhost')]} из 20", "ruhost-hy2.csv")
-t = {l.split()[0]: int(l.split("s=")[1]) for l in open(os.path.expanduser("~/Projects/artel-test-work/part2/rebuild.times")) if " rc=" in l}
+t = {l.split()[0]: int(l.split("s=")[1]) for l in open(f"{R}/rebuild.times") if " rc=" in l}
 has(f"на новых дисках после всех правок: {sum(t.values())} с, из них подъём ВМ {t['up']} с, установка {t['provision']} с, конфиги {t['syncgen']} с, проба {t['proof']} с", "rebuild.times")
 # активное зондирование
 g = collections.OrderedDict()

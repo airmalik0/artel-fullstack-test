@@ -3,7 +3,7 @@
 # Использование: ./lab.sh fetch | up | down | status | ssh <vm> [команда] | provision
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-WORK="${LAB_WORK:-$HOME/Projects/artel-test-work/part2/vm}"
+WORK="${LAB_WORK:-$HOME/artel-lab/vm}"
 IMG_URL="https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2"
 BASE="$WORK/debian-13-arm64.qcow2"
 KEY="$WORK/lab_ed25519"

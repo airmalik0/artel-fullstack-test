@@ -8,8 +8,8 @@ bal 17.09 16:24:54 after-F2
 bal 16.98 16:35:05 during-F3
 bal 16.91 16:44:10 after-F3
 bal 16.80 17:01:00 check
-bal 16.77 17:03:26 at-handoff
-bal 16.75 17:06:30 start-successor
+bal 16.77 17:03:26 checkpoint-1
+bal 16.75 17:06:30 checkpoint-2
 bal 16.74 17:13:21 before-p1
 bal 16.73 17:15:27 after-p1
 bal 16.73 17:16:33 before-isolation

@@ -2,7 +2,7 @@
 # Заливает скрипты на ВМ и пересобирает конфиги. sync.sh [gen]
 set -euo pipefail
 cd "$(dirname "$0")"
-W="${LAB_WORK:-$HOME/Projects/artel-test-work/part2/vm}"
+W="${LAB_WORK:-$HOME/artel-lab/vm}"
 ./lab.sh ssh server 'rm -rf /tmp/provision'; ./lab.sh scp server provision /tmp/provision
 if [ "${1:-}" = gen ]; then
   ./lab.sh ssh server 'sudo bash /tmp/provision/gen-services.sh >/dev/null'

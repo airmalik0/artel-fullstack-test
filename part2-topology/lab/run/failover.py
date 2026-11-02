@@ -6,8 +6,8 @@
 или отказ не задел запросы. Такие строки остаются в CSV и повторяются.
 failover.py --out results/failover.csv --reps 10 [--cases имя,имя] [--append]"""
 import argparse, csv, json, os, random, re, statistics, subprocess, threading, time
-WORK = os.environ.get("LAB_WORK", os.path.expanduser("~/Projects/artel-test-work/part2/vm"))
-RAW = os.path.expanduser("~/Projects/artel-test-work/part2/raw/fo")
+WORK = os.environ.get("LAB_WORK", os.path.expanduser("~/artel-lab/vm"))
+RAW = os.path.expanduser("~/artel-lab/raw/fo")
 PORT = {"client": 2221, "tspu": 2222, "server": 2223}
 PRIMARY = "reality"
 WD_LIMIT = ""  # предел пробы сторожа, пусто значит умолчание
