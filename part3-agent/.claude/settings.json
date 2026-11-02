@@ -42,12 +42,7 @@
       "Edit(./scripts/**)",
       "Edit(./start.sh)",
       "Edit(./.cache/**)",
-      "Write(./.cache/**)",
       "Bash(tmux *)",
-      "Write(./.claude/**)",
-      "Write(./.env*)",
-      "Write(./scripts/**)",
-      "Write(./start.sh)",
       "WebFetch",
       "WebSearch"
     ]
