@@ -11,7 +11,7 @@ REPORT="${1:-/tmp/isolation-report.txt}"
 AGENT_USER="${AGENT_USER:-agent}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [ "$(id -u)" -eq 0 ] || { echo "нужен root" >&2; exit 1; }
-command -v tshark >/dev/null || apt-get install -y -qq --no-install-recommends tshark tcpdump >/dev/null
+command -v tshark >/dev/null || DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends tshark tcpdump >/dev/null
 
 HOSTS_BAK="$(mktemp)"
 PCAP="$(mktemp --suffix=.pcap)"
