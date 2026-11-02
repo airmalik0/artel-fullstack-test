@@ -1,32 +1,25 @@
-# После apply-on-server.sh на контейнере из состояния «до». Время UTC, 02.11.2026
-$ healthcheck
-2026-11-02T11:31:50Z GREEN @artel_repro_malik_bot, poll_age=6s
-rc=0
-# /ping отправлен в 11:30:27, до починки. Ответ бота в чате:
-> #43728 [16:30] /ping
-< #43729 [16:31] pong, сообщение ждало 46 с
-11:31:51 UTC -> /start
-< #43733 [16:31] Демо-бот стенда. Команды: /help, /ping, любой текст вернётся эхом.
-11:31:56 UTC конец ожидания
-11:31:56 UTC -> /help
-< #43735 [16:31] /start приветствие
+# После apply на контейнере из состояния «до». Время UTC, 02.11.2026
+2026-11-02T11:51:54Z GREEN @artel_repro_malik_bot, poll_age=1s
+11:51:57 # /ping, отправленный до починки:
+> #43786 [16:51] /ping
+< #43790 [16:51] pong, сообщение ждало 20 с
+11:51:58 UTC -> /start
+< #43793 [16:52] Демо-бот стенда. Команды: /help, /ping, любой текст вернётся эхом.
+11:52:03 UTC конец ожидания
+11:52:03 UTC -> /help
+< #43795 [16:52] /start приветствие
     /ping проверка
     текст вернётся эхом
-11:32:00 UTC конец ожидания
-11:32:00 UTC -> /ping
-< #43738 [16:32] pong, сообщение ждало 1 с
-11:32:04 UTC конец ожидания
-11:32:04 UTC -> проверка эха
-< #43740 [16:32] эхо: проверка эха (ждало 1 с)
-11:32:22 UTC конец ожидания
-$ PID 1 и процессы
-/usr/bin/sleep
+11:52:07 UTC конец ожидания
+11:52:07 UTC -> /ping
+< #43797 [16:52] pong, сообщение ждало 0 с
+11:52:12 UTC конец ожидания
+11:52:12 UTC -> проверка эха
+< #43800 [16:52] эхо: проверка эха (ждало 1 с)
+11:52:16 UTC конец ожидания
+11:52:16 # процессы:
 1 sleep infinity 
-180 bash -s 
-182 python3 /opt/botfix/supervisor.py 
-183 /usr/local/bin/python3 -u /opt/botfix/relay.py in --listen 127.0.0.1:1
-203 python3 /opt/botfix/relay.py attach 
-210 /usr/local/bin/python3 -u /opt/botfix/heartbeat.py demo_bot 
-220 sh -c readlink /proc/1/exe; for p in /proc/[0-9]*; do printf "%s %s\n"
-7 
-85 
+196 python3 /opt/botfix/supervisor.py 
+198 /usr/local/bin/python3 -u /opt/botfix/relay.py in --listen 1
+209 python3 /opt/botfix/relay.py attach 
+222 /usr/local/bin/python3 -u /opt/botfix/heartbeat.py demo_bot 

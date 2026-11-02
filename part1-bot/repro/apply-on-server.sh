@@ -83,7 +83,6 @@ for f in "$ENV_FILE" "$OLD_BACKUP" /entrypoint.sh; do
 done
 [ "$MODE" = dry ] || { mkdir -p "$LOG_DIR"; chmod 700 "$LOG_DIR"; touch "$ROLLBACK"; }
 
-undo "kill \"\$(cat $STATE_DIR/supervisor.pid)\""
 say "== 1. файлы починки в $FIX =="
 if [ -e "$FIX" ]; then run mv "$FIX" "$FIX.bak-$STAMP"; undo "rm -rf '$FIX' && mv '$FIX.bak-$STAMP' '$FIX'"
 else undo "rm -rf '$FIX'"; fi
@@ -140,6 +139,8 @@ if ! grep -q botfix/supervisor.py /entrypoint.sh; then
 else say "entrypoint уже запускает супервизор"; fi
 
 say "== 6. запуск =="
+# Последней строкой: если супервизор уже PID 1, kill останавливает контейнер, файлы должны быть восстановлены раньше.
+undo "kill \"\$(cat $STATE_DIR/supervisor.pid)\""
 OLD=$(pids_of "$BOT_MODULE" run_prod.py demo_bot.py | tr '\n' ' ')
 say "старые процессы бота: ${OLD:-нет}"
 [ -z "$OLD" ] || run kill $OLD

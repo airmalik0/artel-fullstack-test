@@ -1,0 +1,33 @@
+# Повторный apply и перезапуск контейнера. Время UTC, 02.11.2026
+11:52:16 # второй --apply на работающем стенде
+rc=0
+в /opt/bots/demo/demo_bot.py уже нет drop_pending_updates=True
+/etc/botfix/backup.pass уже есть
+== 5. супервизор из entrypoint ==
+entrypoint уже запускает супервизор
+супервизор уже работает, перезапускаю бота
+2026-11-02T11:52:23Z GREEN @artel_repro_malik_bot, poll_age=10s
+11:52:23 UTC -> /ping
+< #43802 [16:52] pong, сообщение ждало 2 с
+11:52:35 UTC конец ожидания
+11:52:35 # docker restart: зомби и PID 1
+/usr/bin/sleep
+11:52:36 # контейнер перезапущен
+/usr/local/bin/python3.12
+python3 /opt/botfix/supervisor.py 
+2026-11-02T11:52:54Z GREEN @artel_repro_malik_bot, poll_age=3s
+11:52:54 UTC -> /ping
+< #43804 [16:52] pong, сообщение ждало 1 с
+11:52:58 UTC конец ожидания
+11:52:58 # kill -9 1 изнутри контейнера
+контейнер running
+/usr/local/bin/python3.12
+11:53:00 # зомби: 0
+11:53:00 # журнал внешней стороны:
+2026-11-02T11:51:46Z link up pid=94281
+2026-11-02T11:52:36Z link down rc=137
+2026-11-02T11:52:36Z retry in 1s
+2026-11-02T11:52:37Z link up pid=96544
+11:53:00 UTC -> /ping
+< #43806 [16:53] pong, сообщение ждало 0 с
+11:53:05 UTC конец ожидания

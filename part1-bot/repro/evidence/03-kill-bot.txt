@@ -1,14 +1,13 @@
 # kill -9 бота: супервизор поднимает, бот снова отвечает. Время UTC, 02.11.2026
-11:33:45 UTC -> /ping
-< #43746 [16:33] pong, сообщение ждало 0 с
-11:33:50 UTC конец ожидания
-11:33:50 # kill -9 160
-OCI runtime exec failed: exec failed: unable to start container process: exec: "kill": executable file not found in $PATH
-11:33:51 # процесс 160: жив
-2026-11-02T11:33:24Z exit bot pid=140 status=1 after 1s, restart in 4s
-2026-11-02T11:33:28Z start bot pid=160
-2026-11-02T11:33:50Z start health pid=182
-2026-11-02T11:33:59Z GREEN @artel_repro_malik_bot, poll_age=1s
-11:33:59 UTC -> /ping
-(бот ничего не прислал)
-11:34:19 UTC конец ожидания
+11:41:41 UTC -> /ping
+< #43754 [16:41] pong, сообщение ждало 1 с
+11:41:45 UTC конец ожидания
+11:41:45 # kill -9 125
+11:41:47 # процесс 125: нет
+2026-11-02T11:41:25Z start health pid=300
+2026-11-02T11:41:46Z exit bot pid=125 status=-9 after 194s, restart in 1s
+2026-11-02T11:41:47Z start bot pid=322
+2026-11-02T11:41:53Z GREEN @artel_repro_malik_bot, poll_age=10s
+11:41:53 UTC -> /ping
+< #43756 [16:41] pong, сообщение ждало 1 с
+11:41:57 UTC конец ожидания

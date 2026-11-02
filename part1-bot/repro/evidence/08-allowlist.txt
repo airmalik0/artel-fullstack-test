@@ -1,0 +1,13 @@
+# Запрещённые цели через реле. Время UTC, 02.11.2026
+https://example.com/ -> Tunnel connection failed: 403 not in allowlist
+https://api.deepseek.com/ -> Tunnel connection failed: 403 not in allowlist
+https://149.154.166.110/ -> Tunnel connection failed: 403 not in allowlist
+api.telegram.org:80 -> HTTP/1.1 403 not in allowlist
+прямое соединение без реле -> [Errno 101] Network is unreachable
+11:45:12 # журнал внешней стороны:
+2026-11-02T11:45:12Z deny sid=84 example.com:443
+2026-11-02T11:45:12Z deny sid=85 api.deepseek.com:443
+2026-11-02T11:45:12Z deny sid=86 149.154.166.110:443
+2026-11-02T11:45:12Z deny sid=87 api.telegram.org:80
+11:45:12 # содержимое в журнал не попадает, строка разрешённого потока:
+2026-11-02T11:45:08Z close sid=83 api.telegram.org:443 up=1828 down=7042 secs=0

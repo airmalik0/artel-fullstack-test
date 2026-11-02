@@ -1,0 +1,24 @@
+# Обрыв реле: внешняя сторона остановлена, сообщение отправлено в простое. Время UTC, 02.11.2026
+2026-11-02T11:42:06Z GREEN @artel_repro_malik_bot, poll_age=3s
+rc=0
+11:42:06 # останавливаю внешний конец реле
+stopped
+2026-11-02T11:42:08Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, poll_age=5s
+rc=1
+11:42:08 UTC -> сообщение в простое реле
+(бот ничего не прислал)
+11:42:16 UTC конец ожидания
+11:42:16 # жду 75 с: бот жив, опрос стоит
+2026-11-02T11:43:31Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, poll_age=88s
+rc=1
+11:43:31 # запускаю внешний конец реле
+relay-out pid 67255
+2026-11-02T11:43:52Z GREEN @artel_repro_malik_bot, poll_age=0s
+11:44:00 # чат:
+> #43759 [16:42] сообщение в простое реле
+< #43762 [16:43] эхо: сообщение в простое реле (ждало 103 с)
+11:44:01 # журнал смены состояний health.log:
+2026-11-02T11:40:37Z GREEN @artel_repro_malik_bot, poll_age=1s
+2026-11-02T11:42:08Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, poll_age=5s
+2026-11-02T11:43:35Z RED getMe @artel_repro_malik_bot отвечает, но бот не опрашивает Telegram дольше 60 с, poll_age=92s
+2026-11-02T11:43:52Z GREEN @artel_repro_malik_bot, poll_age=0s

@@ -17,7 +17,7 @@ rc=0 (свой подкаталог бота, root туда не пишет)
 3862f5361ca1a8c0
 2026-11-02 11:39:22.342590008 +0000 7
 -rw-r--r-- 1 root root 112 Nov  2 11:40 
-2026-11-02T11:40:25Z RED getMe @artel_repro_malik_bot отвечает, но б�
+2026-11-02T11:40:25Z RED getMe @artel_repro_malik_bot отвечает, но б
 $ (uid 10001) ls /var/log/botfix
 ls: cannot open directory '/var/log/botfix': Permission denied
 ## контроль: прежняя раскладка, каталог отдан боту, запись root проходит через симлинк

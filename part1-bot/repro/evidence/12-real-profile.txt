@@ -1,0 +1,34 @@
+# --profile real на контейнере формы сервера. Бот мой, путь и имя модуля как на сервере. Время UTC, 02.11.2026
+11:53:50 # сухой прогон
+rc=0
+== проверка цели, режим dry ==
+PID 1: /usr/bin/sleep
+маршрутов: 0, интерфейсы: bonding_masters erspan0 gre0 gretap0 ip6_vti0 ip6gre0 i
+python 3.12.15 ptb 21.11.1
+есть /opt/bots/amigo/.env
+есть /usr/local/sbin/amigo-backup.sh
+есть /entrypoint.sh
+11:53:50 # --apply
+rc=0
+старые процессы бота: 25 
+откат: bash /var/log/botfix/rollback-20261102T115350Z.sh, журнал: /var/log/botfix/apply-20261102T115350Z.log
+2026-11-02T11:53:54Z RED нет связи с Telegram: Tunnel connection failed: 503 relay link down, опроса ещ
+Настоящему боту для ответов ещё нужен второй --allow api.deepseek.com:443.
+приманка 24: жива
+run_prod 25: остановлен
+exec python3 /opt/botfix/supervisor.py
+1
+BOT_TOKEN HTTPS_PROXY OTHER_KEY 
+OTHER_KEY=keep-me
+HTTPS_PROXY=http://127.0.0.1:18190
+/usr/local/bin/python3 -u /opt/botfix/heartbeat.py amigo.main 
+11:53:54 # основное реле на паузе, бота принимает этот контейнер
+stopped
+relay-out pid 98925
+2026-11-02T11:54:13Z GREEN @artel_repro_malik_bot, poll_age=3s
+rc=0
+11:54:13 UTC -> /ping
+< #43813 [16:54] pong, сообщение ждало 0 с
+11:54:17 UTC конец ожидания
+stopped
+relay-out pid 99998

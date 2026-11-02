@@ -1,0 +1,39 @@
+# Сухой прогон apply-on-server.sh, rc=0, 11:51:43 UTC
+== проверка цели, режим dry ==
+PID 1: /usr/bin/sleep
+маршрутов: 0, интерфейсы: bonding_masters erspan0 gre0 gretap0 ip6_vti0 ip6gre0 ip6tnl0 ip_vti0 lo sit0 tunl0 
+python 3.12.15 ptb 21.11.1
+есть /opt/bots/demo/.env
+есть /usr/local/sbin/demo-backup.sh
+есть /entrypoint.sh
+== 1. файлы починки в /opt/botfix ==
++ mkdir -p /opt/botfix /etc/botfix /run/botfix
+настройки в /opt/botfix/botfix.env, реле на 127.0.0.1:18190, бот demo_bot, uid 10001
+== 2. /opt/bots/demo/.env: только ключи, значения не печатаю ==
++ cp -a /opt/bots/demo/.env /opt/bots/demo/.env.bak-20261102T115143Z
++ chmod 600 /opt/bots/demo/.env.bak-20261102T115143Z
++ HTTPS_PROXY=http://127.0.0.1:18190
++ BOT_TOKEN будет заменён, в сухом прогоне токен не передаю
+== 3. очередь сообщений не сбрасывается при старте ==
++ cp -a /opt/bots/demo/demo_bot.py /opt/bots/demo/demo_bot.py.bak-20261102T115143Z
++ chmod 600 /opt/bots/demo/demo_bot.py.bak-20261102T115143Z
++ sed -i s/drop_pending_updates=True/drop_pending_updates=False/ /opt/bots/demo/demo_bot.py
+== 4. пароль бэкапа в файл 600 ==
++ cp -a /usr/local/sbin/demo-backup.sh /usr/local/sbin/demo-backup.sh.bak-20261102T115143Z
++ chmod 600 /usr/local/sbin/demo-backup.sh.bak-20261102T115143Z
+новый пароль в /etc/botfix/backup.pass, старый в /etc/botfix/backup.pass.old, /usr/local/sbin/demo-backup.sh вызывает /opt/botfix/backup.sh
+== 5. супервизор из entrypoint ==
++ cp -a /entrypoint.sh /entrypoint.sh.bak-20261102T115143Z
++ chmod 600 /entrypoint.sh.bak-20261102T115143Z
++ sed -i -e /^# bot-start/,/^# bot-end/d -e s|^exec .*sleep infinity$|exec python3 /opt/botfix/supervisor.py| /entrypoint.sh
+== 6. запуск ==
+старые процессы бота: нет
++ setsid python3 /opt/botfix/supervisor.py
+== сухой прогон, ничего не изменено. Настоящий запуск: --apply ==
+
+Внешний конец реле запускается на машине с сетью:
+  python3 fix/relay.py out --allow api.telegram.org:443 --journal relay-out.log -- docker exec -i artel-stand python3 /opt/botfix/relay.py attach
+# После сухого прогона:
+/opt/botfix нет
+HTTPS_PROXY в .env: 0
+1

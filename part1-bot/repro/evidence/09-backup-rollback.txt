@@ -1,0 +1,38 @@
+artel-rb запущен: --network none, PID 1 /usr/bin/sleep
+# Бэкап и откат. Контейнер без реле. Время UTC, 02.11.2026
+## до починки
+8a4b31efe80a 600 /opt/bots/demo/.env
+cfde911ddf37 644 /opt/bots/demo/demo_bot.py
+95a0d55b0100 755 /usr/local/sbin/demo-backup.sh
+8d7ebd1669b7 755 /entrypoint.sh
+аргументы openssl: openssl enc -aes-256-cbc -pbkdf2 -k                         -out /var/backups/demo/demo-src-2026-11-02.tar.gz.enc
+аргументы openssl: openssl enc -aes-256-cbc -pbkdf2 -k stand-only-not-a-secret -out /var/backups/demo/demo-src-2026-11-02.tar.gz.enc
+apply rc=0
+## после починки
+2026-11-02T11:53:15Z backup /var/backups/demo/demo-src-2026-11-02T115315Z.tar.gz.enc 1456 bytes
+аргументы openssl: openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:/etc/botfix/backup.pass -out /var/backups/demo/demo-src-2026-11-02T115315Z.tar.gz.enc.tmp
+600 root /etc/botfix/backup.pass
+600 root /etc/botfix/backup.pass.old
+600 /usr/local/sbin/demo-backup.sh.bak-20261102T115311Z
+пароль в скриптах: 0 файлов
+#!/bin/bash
+exec /opt/botfix/backup.sh
+600 1456 /var/backups/demo/demo-src-2026-11-02T115315Z.tar.gz.enc
+12015a6a7490
+12015a6a7490
+bad decrypt
+## откат при фоновом супервизоре
+bash /var/log/botfix/rollback-20261102T115311Z.sh
+файлы совпали с исходными
+/opt/botfix удалён
+## второе применение, супервизор как PID 1, задание бэкапа по расписанию
+apply rc=0
+/usr/local/bin/python3.12
+python3 /opt/botfix/supervisor.py 
+2026-11-02T11:53:37Z backup /var/backups/demo/demo-src-2026-11-02T115337Z.tar.gz.enc 1552 bytes
+2026-11-02T11:53:37Z start backup pid=11
+## откат при супервизоре в PID 1: контейнер останавливается, файлы уже восстановлены
+bash /var/log/botfix/rollback-20261102T115318Z.sh
+exited
+/usr/bin/sleep
+файлы совпали с исходными
