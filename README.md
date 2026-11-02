@@ -7,7 +7,7 @@
 |---|---|---|
 | 1. Почему молчит бот | Причины найдены: токен отвергнут Telegram (401) и у контейнера нет сети. Починка показана на стенде с теми же ограничениями, скрипт для настоящего сервера проверен только на стенде | [`part1-bot/REPORT.md`](part1-bot/REPORT.md) |
 | 2. Топология и ТСПУ | Два выхода в разных AS, запасной вход через РФ, сторож объёма. Замеры на модели в QEMU, отдельно открытые данные из РФ | [`part2-topology/TOPOLOGY.md`](part2-topology/TOPOLOGY.md) |
-| 3. Claude Code на DeepSeek | Запуск одной командой, пайплайн разворачивает VPN-узел, удалённый доступ через tmux. Архив `artel-agent.tar.gz` в [релизе](../../releases/latest) | [`part3-agent/README.md`](part3-agent/README.md) |
+| 3. Claude Code на DeepSeek | Запуск одной командой, пайплайн разворачивает VPN-узел, удалённый доступ через tmux. Архив `artel-agent.tar.gz` в [релизе](https://github.com/airmalik0/artel-fullstack-test/releases/latest) | [`part3-agent/README.md`](part3-agent/README.md) |
 | Статистика ccusage | Последние 30 дней, вывод целиком | [`ccusage/ccusage-30d.png`](ccusage/ccusage-30d.png) |
 
 ## Что проверить в первую очередь
