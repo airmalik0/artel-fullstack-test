@@ -10,7 +10,7 @@ def has(text, where):
     if text not in DOC:
         bad += 1; print(f"РАСХОЖДЕНИЕ [{where}]: {text[:150]}")
 def lines(cmd):
-    return [l for l in subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.splitlines() if l.startswith("| ") and not l.startswith("| сценарий |") or l.startswith("строк всего")]
+    return [l for l in subprocess.run(cmd, capture_output=True, text=True, check=True).stdout.splitlines() if l.startswith("| ") and not l.startswith("| сценарий |")]
 for l in lines([sys.executable, f"{LAB}/run/table.py", f"{R}/matrix.csv"]):
     has(l, "table.py")
 if os.path.exists(f"{R}/failover.csv") and os.path.exists(f"{R}/watchdog.csv"):
@@ -44,6 +44,7 @@ if (comp[("v26.6.27", True)], comp[("v26.9.9", False)], comp[("v26.10.31", False
 has("0 из 3 против Xray 26.9.9 и 26.10.31, 3 из 3 против 26.6.27", "reality-compat.csv")
 fo = list(csv.DictReader(open(f"{R}/failover.csv")))
 has(f"Таких строк {sum(r['valid'] != '1' for r in fo)} из {len(fo)}", "failover.csv")
+la = [float(r["load1"]) for r in fo]; has(f"средняя нагрузка от {min(la):.0f} до {max(la):.0f}", "failover.csv")
 # активное зондирование
 g = collections.OrderedDict()
 for r in csv.DictReader(open(f"{R}/probe.csv")):
